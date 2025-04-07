@@ -57,71 +57,71 @@ Ltac syntactic_refl :=
 (* [lazy] *)
 
 Goal make 5 "a" = cat (make 2 "a") (make 3 "a").
-Proof. lazy. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal get "aaa" 0 = "a"%char63.
-Proof. lazy. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal sub "abcd" 2 1 = "c".
-Proof. lazy. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal cat "ab" "ba" = "abba".
-Proof. lazy. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "ab" = Eq.
-Proof. lazy. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "a" = Gt.
-Proof. lazy. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "a" "ab" = Lt.
-Proof. lazy. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 (* [cbn] *)
 
 Goal make 5 "a" = cat (make 2 "a") (make 3 "a").
-Proof. cbn. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal get "aaa" 0 = "a"%char63.
-Proof. cbn. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal sub "abcd" 2 1 = "c".
-Proof. cbn. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal cat "ab" "ba" = "abba".
-Proof. cbn. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "ab" = Eq.
-Proof. cbn. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "a" = Gt.
-Proof. cbn. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "a" "ab" = Lt.
-Proof. cbn. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 (* [cbv] *)
 
 Goal make 5 "a" = cat (make 2 "a") (make 3 "a").
-Proof. cbv. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal get "aaa" 0 = "a"%char63.
-Proof. cbv. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal sub "abcd" 2 1 = "c".
-Proof. cbv. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal cat "ab" "ba" = "abba".
-Proof. cbv. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "ab" = Eq.
-Proof. cbv. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "a" = Gt.
-Proof. cbv. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "a" "ab" = Lt.
-Proof. cbv. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 (* [simpl] *)
 
@@ -181,25 +181,25 @@ Proof. hnf_eq. syntactic_refl. Qed.
 (* [vm_compute] *)
 
 Goal make 5 "a" = cat (make 2 "a") (make 3 "a").
-Proof. vm_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal get "aaa" 0 = "a"%char63.
-Proof. vm_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal sub "abcd" 2 1 = "c".
-Proof. vm_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal cat "ab" "ba" = "abba".
-Proof. vm_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "ab" = Eq.
-Proof. vm_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "a" = Gt.
-Proof. vm_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "a" "ab" = Lt.
-Proof. vm_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Check (eq_refl "aaaaa" <: make 5 "a" = cat (make 2 "a") (make 3 "a")).
 Check (eq_refl (char63_wrap "a"%char63) <: get "aaa" 0 = "a"%char63).
@@ -212,25 +212,25 @@ Check (eq_refl Lt <: compare "a" "ab" = Lt).
 (* [native_compute] *)
 
 Goal make 5 "a" = cat (make 2 "a") (make 3 "a").
-Proof. native_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal get "aaa" 0 = "a"%char63.
-Proof. native_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal sub "abcd" 2 1 = "c".
-Proof. native_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal cat "ab" "ba" = "abba".
-Proof. native_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "ab" = Eq.
-Proof. native_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "ab" "a" = Gt.
-Proof. native_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Goal compare "a" "ab" = Lt.
-Proof. native_compute. syntactic_refl. Qed.
+Proof. repeat step cbv. syntactic_refl. Qed.
 
 Check (eq_refl "aaaaa" <<: make 5 "a" = cat (make 2 "a") (make 3 "a")).
 Check (eq_refl (char63_wrap "a"%char63) <<: get "aaa" 0 = "a"%char63).

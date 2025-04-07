@@ -447,7 +447,7 @@ Section test_letin_subtyping.
   Lemma ZZ' : @eq (box@{i2 j2 k2} V) Z Z'.
   Proof.
     Set Printing All. Set Printing Universes.
-    cbv.
+    repeat step cbv.
     reflexivity.
   Qed.
 

@@ -502,9 +502,11 @@ let instantiate_context ctxt c =
 
 type matching_result =
     { m_sub : bound_ident_map * patvar_map;
-      m_ctx : context; }
+      m_ctx : context;
+      m_term: constr;
+    }
 
-let mkresult s c n = IStream.Cons ( { m_sub=s; m_ctx=c; } , (IStream.thunk n) )
+let mkresult s c t n = IStream.Cons ( { m_sub=s; m_ctx=c; m_term=t; } , (IStream.thunk n) )
 
 let isPMeta = function PMeta _ -> true | _ -> false
 
@@ -526,7 +528,7 @@ let authorized_occ env sigma closed pat c mk_ctx =
     let subst = matches_core_closed env sigma pat c in
     if closed && Id.Map.exists (fun _ c -> not (closed0 sigma c)) (snd subst)
     then (fun next -> next ())
-    else (fun next -> mkresult subst (lazy (mk_ctx (mkMeta special_meta))) next)
+    else (fun next -> mkresult subst (lazy (mk_ctx (mkMeta special_meta))) c next)
   with PatternMatchingFailure -> (fun next -> next ())
 
 let subargs env v = Array.map_to_list (fun c -> (env, c)) v
@@ -645,6 +647,8 @@ let sub_match ?(closed=true) env sigma pat c =
   IStream.thunk result
 
 let match_subterm env sigma pat c = sub_match env sigma pat c
+
+let match_open_subterm env sigma pat c = sub_match ~closed:false env sigma pat c
 
 let is_matching env sigma pat c =
   try let _ = matches env sigma pat c in true

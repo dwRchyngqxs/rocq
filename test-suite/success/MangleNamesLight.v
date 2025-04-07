@@ -16,7 +16,7 @@ Fixpoint Lots (n : nat) : Type :=
 
 Goal Lots 10.
 assert (_x8 : X) by admit.
-cbv; intros.
+repeat step cbv; intros.
 Check _x9.
 Abort.
 
@@ -28,7 +28,7 @@ Fixpoint Lots' (x : X) (n : nat) : Type :=
 
 Goal forall _x0, Lots' _x0 10.
 assert (_x8 : X) by admit.
-cbv; intros.
+repeat step cbv; intros.
 Check __x9.
 simpl.
 Abort.

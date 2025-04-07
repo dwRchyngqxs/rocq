@@ -4,7 +4,7 @@ Definition foo : { x : float | x = 1%float }.
 Proof.
 eexists.
 Set Printing All.
-native_compute.
+repeat step cbv.
 (* was giving
 @eq 0x0.05555897461p-1022%float 0x0.05555897461p-1022%float 0x1p+0%float *)
 Abort.

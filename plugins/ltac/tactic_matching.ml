@@ -244,13 +244,14 @@ module PatternMatching (E:StaticEnvironment) = struct
             return lhs
           with Constr_matching.PatternMatchingFailure -> fail
         end
-    | Subterm (id_ctxt,p) ->
+    | Subterm (id_ctxt,n,p) ->
 
       let rec map s (e, info) =
         { stream = fun k ctx -> match IStream.peek s with
           | IStream.Nil -> Proofview.tclZERO ~info e
-          | IStream.Cons ({ Constr_matching.m_sub ; m_ctx }, s) ->
-            let subst = adjust m_sub in
+          | IStream.Cons ({ Constr_matching.m_sub ; m_ctx ; m_term }, s) ->
+            let var_map = id_map_try_add_name n m_term (snd m_sub) in
+            let subst = adjust (fst m_sub, var_map) in
             let context = id_map_try_add id_ctxt m_ctx Id.Map.empty in
             let terms = empty_term_subst in
             let nctx = { subst ; context ; terms ; lhs = () } in
@@ -259,7 +260,7 @@ module PatternMatching (E:StaticEnvironment) = struct
             | Some nctx -> Proofview.tclOR (k lhs nctx) (fun e -> (map s e).stream k ctx)
         }
       in
-      map (Constr_matching.match_subterm E.env E.sigma p term) imatching_error
+      map (Constr_matching.match_open_subterm E.env E.sigma p term) imatching_error
 
 
   (** [rule_match_term term rule] matches the term [term] with the

@@ -8,6 +8,6 @@ pose (f' := (-f)%float).
    coq_interprete C function was an unboxed OCaml Double_array
    (created by Array.map in csymtable.ml just before calling
    eval_tcode) *)
-vm_compute in f'.
+   repeat step cbv in f'.
 
 Abort.

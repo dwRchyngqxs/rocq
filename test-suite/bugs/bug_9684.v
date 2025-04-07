@@ -6,7 +6,7 @@ Definition x := mkFoo true false.
 Definition proj x := proj2 x.
 
 Lemma oops : proj = fun x => proj1 x.
-Proof. Fail native_compute; reflexivity. Abort.
+Proof. Fail repeat step cbv; reflexivity. Abort.
 
 (*
 Lemma bad : False.

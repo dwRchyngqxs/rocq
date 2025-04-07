@@ -16,5 +16,5 @@ Goal True.
   constructor.
 Qed.
 Goal List.repeat Z.div_eucl 5 = List.repeat Z.div_eucl 5.
-  vm_compute; reflexivity.
+repeat step cbv; reflexivity.
 Qed.

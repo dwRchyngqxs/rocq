@@ -6,6 +6,6 @@ Definition opp i := sub 0 i.
 Lemma foo :
   let n := opp 0 in add n 0 = n.
 Proof.
-cbv.
+  repeat step cbv.
 apply eq_refl.
 Qed.

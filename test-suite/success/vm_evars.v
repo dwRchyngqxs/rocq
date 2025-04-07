@@ -9,7 +9,7 @@ Proof.
 intros n.
 evar (f : nat -> nat).
 cut (iter 10 f 0 = 0).
-vm_compute.
+repeat step cbv.
 intros; constructor.
 instantiate (f := (fun x => x)).
 reflexivity.
@@ -18,6 +18,6 @@ Qed.
 Goal exists x, x = 5 + 5.
 Proof.
   eexists.
-  vm_compute.
+  repeat step cbv.
   reflexivity.
 Qed.

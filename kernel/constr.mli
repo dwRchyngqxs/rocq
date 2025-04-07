@@ -187,14 +187,14 @@ val mkCase : case -> constr
       [typarray = [|t1,...tn|]]
       [bodies   = [|b1,.....bn|]]
    then [mkFix ((recindxs,i), funnames, typarray, bodies) ]
-   constructs the {% $ %}i{% $ %}th function of the block (counting from 0)
+   constructs the {% \$ %}i{% \$ %}th function of the block (counting from 0)
 
     [Fixpoint f1 [ctx1] = b1
      with     f2 [ctx2] = b2
      ...
      with     fn [ctxn] = bn.]
 
-   where the length of the {% $ %}j{% $ %}th context is {% $ %}ij{% $ %}.
+   where the length of the {% \$ %}j{% \$ %}th context is {% \$ %}ij{% \$ %}.
 *)
 type ('constr, 'types, 'r) prec_declaration =
     (Name.t, 'r) Context.pbinder_annot array * 'types array * 'constr array
@@ -357,13 +357,13 @@ val destSort : constr -> Sorts.t
 (** Destructs a casted term *)
 val destCast : constr -> constr * cast_kind * constr
 
-(** Destructs the product {% $ %}(x:t_1)t_2{% $ %} *)
+(** Destructs the product {% \$ %}(x:t_1)t_2{% \$ %} *)
 val destProd : types -> Name.t binder_annot * types * types
 
-(** Destructs the abstraction {% $ %}[x:t_1]t_2{% $ %} *)
+(** Destructs the abstraction {% \$ %}[x:t_1]t_2{% \$ %} *)
 val destLambda : constr -> Name.t binder_annot * types * constr
 
-(** Destructs the let {% $ %}[x:=b:t_1]t_2{% $ %} *)
+(** Destructs the let {% \$ %}[x:=b:t_1]t_2{% \$ %} *)
 val destLetIn : constr -> Name.t binder_annot * constr * types * constr
 
 (** Destructs an application *)
@@ -397,12 +397,12 @@ val destCase : constr -> case
 (** Destructs a projection *)
 val destProj : constr -> Projection.t * Sorts.relevance * constr
 
-(** Destructs the {% $ %}i{% $ %}th function of the block
+(** Destructs the {% \$ %}i{% \$ %}th function of the block
    [Fixpoint f{_ 1} ctx{_ 1} = b{_ 1}
     with    f{_ 2} ctx{_ 2} = b{_ 2}
     ...
     with    f{_ n} ctx{_ n} = b{_ n}],
-   where the length of the {% $ %}j{% $ %}th context is {% $ %}ij{% $ %}.
+   where the length of the {% \$ %}j{% \$ %}th context is {% \$ %}ij{% \$ %}.
 *)
 val destFix : constr -> fixpoint
 

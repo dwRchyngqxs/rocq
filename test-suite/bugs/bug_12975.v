@@ -19,7 +19,7 @@ Existing Class myotherprop.
 #[export] Instance : forall O, myprop O. Abort.
 #[export] Instance : forall (O : bar), myotherprop O.
 Proof.
-  intros O. destruct O; cbn. exact someprop0.
+  intros O. destruct O; repeat step cbv. exact someprop0.
 Defined.
 
 Definition bar_nat : bar := {| myotherprop := nat; someprop := 0; somefn x := x |}.

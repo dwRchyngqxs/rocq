@@ -5,14 +5,14 @@ Record prod A B := pair { fst : A ; snd : B }.
 Definition f : Set -> Type := fun x => x.
 
 Goal (fst (pair (fun x => x + 1) nat) 0) = 0.
-compute.
+repeat step cbv.
 Undo.
-cbv.
+repeat step cbv.
 Undo.
 Opaque fst.
-cbn.
+repeat step cbv.
 Transparent fst.
-cbn.
+repeat step cbv.
 Undo.
 simpl.
 Undo.

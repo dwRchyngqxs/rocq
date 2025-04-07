@@ -236,11 +236,11 @@ Eval vm_compute in pred successor_of_nothing.
 Definition ignore {A} (x:A) := tt.
 
 Definition beginning_of_the_world : ignore (pred successor_of_nothing) = tt.
-Proof. lazy;reflexivity. Qed.
+Proof. repeat step cbv;reflexivity. Qed.
 
 Lemma end_of_the_world : tt = tt.
 Proof.
-  vm_compute.
+  repeat step cbv.
   exact beginning_of_the_world.
 Defined.
 (* This computation would run in the VM from the kernel, which is dangerous *)

@@ -73,12 +73,21 @@ val instantiate_context : context -> EConstr.t -> EConstr.t
    (whose hole is denoted here with [special_meta]) *)
 type matching_result =
     { m_sub : bound_ident_map * patvar_map;
-      m_ctx : context }
+      m_ctx : context;
+      m_term: constr
+    }
 
 (** [match_subterm pat c] returns the substitution and the context
    corresponding to each **closed** subterm of [c] matching [pat],
    considering application contexts as well. *)
 val match_subterm : env -> Evd.evar_map ->
+  binding_bound_vars * instantiated_pattern -> constr ->
+  matching_result IStream.t
+
+(** [match_open_subterm pat c] returns the substitution and the context
+   corresponding to each subterm of [c] matching [pat],
+   considering application contexts as well. *)
+val match_open_subterm : env -> Evd.evar_map ->
   binding_bound_vars * instantiated_pattern -> constr ->
   matching_result IStream.t
 
