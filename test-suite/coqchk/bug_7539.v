@@ -20,7 +20,7 @@ Lemma Str_nth_tl_map : forall n s, EqSt (Str_nth_tl n (map s)) (map (Str_nth_tl 
 Proof.
 induction n.
 + intros; apply EqSt_reflex.
-+ cbn; intros s; apply IHn.
++ repeat step cbv; intros s; apply IHn.
 Qed.
 
 Definition boom : forall s, tl (map s) = map (tl s) := fun s => eq_refl.

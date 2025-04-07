@@ -8,7 +8,7 @@ interpreter *)
 Lemma bad : False.
 assert (1 = 2).
 change 1 with (add (addmuldiv 129 (add 1 1) 2) 1).
-Fail vm_compute; reflexivity.
+Fail repeat step cbv; reflexivity.
 (*
 discriminate.
 Qed.

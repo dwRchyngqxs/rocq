@@ -23,6 +23,6 @@ Definition f n m :=
 
 Goal forall n, (compare n 42)%uint63 = Gt -> f n 256 = 512%uint63.
   intros. unfold f.
-  cbn. Undo. cbv. (* Test reductions under match clauses *)
+  repeat step cbv. Undo. repeat step cbv. (* Test reductions under match clauses *)
   rewrite H. reflexivity.
 Qed.

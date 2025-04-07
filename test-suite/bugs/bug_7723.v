@@ -66,6 +66,6 @@ Polymorphic Definition foo :=
 
 Lemma bad : False.
   refine (TypeNeqSmallType.paradox (snd foo) _).
-  vm_compute.
+  repeat step cbv.
   Fail reflexivity.
 Abort.

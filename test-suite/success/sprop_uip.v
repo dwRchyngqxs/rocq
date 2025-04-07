@@ -114,6 +114,7 @@ Proof.
   lazy; check; reset.
 
   (* TODO *)
+  repeat step cbv. Fail check. reset.
   vm_compute. Fail check.
   native_compute. Fail check.
   cbv. Fail check.
@@ -139,7 +140,7 @@ Module HoTTStyle.
     Lemma bla (P : B -> Type) (a : A) (F : forall a, P (f a))
       : seq_rect _ (f (g (f a))) (fun a _ => P a) (F (g (f a))) (f a) (retraction (f a)) = F a.
     Proof.
-      lazy.
+      repeat step cbv.
       change (retraction (f a)) with (ap f (section a)).
       destruct (section a).
       reflexivity.

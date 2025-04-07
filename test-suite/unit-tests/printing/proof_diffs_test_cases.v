@@ -6,7 +6,7 @@ Abort.
 Goal nat -> bool -> nat -> True.
 intros i b j.
 revert b.
-cbn.
+repeat step cbv.
 Abort.
 
 Require Import Corelib.Init.Number.

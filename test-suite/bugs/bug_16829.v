@@ -70,7 +70,7 @@ Module ShouldWork.
 
   Lemma test2 : run assign_instr = m_expected.
   Proof.
-    cbv. reflexivity.
+    repeat step cbv. reflexivity.
   Qed.
 
 End ShouldWork.

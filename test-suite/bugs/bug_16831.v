@@ -10,7 +10,7 @@ Proof. reflexivity. Qed.
 
 (* bad! *)
 Lemma v_false : v = false.
-Proof. vm_compute. Fail reflexivity. Abort.
+Proof. repeat step cbv. Fail reflexivity. Abort.
 
 Lemma v_false : v = false.
-Proof. native_compute. Fail reflexivity. Abort.
+Proof. repeat step cbv. Fail reflexivity. Abort.

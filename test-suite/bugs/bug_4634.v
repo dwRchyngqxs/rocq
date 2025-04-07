@@ -9,7 +9,7 @@ Notation " x .2 " := (pr2 x).
 
 Goal ((0; 1); 2).1.2 = 1.
 Proof.
-  cbv.
+  repeat step cbv.
   match goal with
   | |- ?t = ?t => exact (eq_refl t)
   end.

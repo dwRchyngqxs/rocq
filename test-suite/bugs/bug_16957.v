@@ -4,11 +4,11 @@ Module Test1.
   Proof.
     evar (x:nat).
     generalize (eq_refl:x = x).
-    vm_compute.
+    repeat step cbv.
     intros _.
     generalize (eq_refl:x + 1 = x + 1).
     let x := constr:(eq_refl : x = 0) in idtac.
-    vm_compute.
+    repeat step cbv.
     (* vm_compute still thinks variable x is defined to an undefined evar, so computes to a blocked fix *)
 
     match goal with |- 1 = 1 -> True => idtac end.
@@ -20,10 +20,10 @@ Module Test1.
     assert_succeeds (
         let y := constr:(eq_refl : x = 1) in
         generalize (eq_refl:x = x);
-        vm_compute).
+        repeat step cbv).
     (* vm_compute now believes x = 1 *)
     generalize (eq_refl:x = 0).
-    vm_compute.
+    repeat step cbv.
     match goal with |- 0 = 0 -> False => idtac end.
   Abort.
 
@@ -49,7 +49,7 @@ Module Test2.
     Fail Definition foo : x = 1
       := ltac:(
                  change_no_check 0 with 1 in x;
-                 vm_compute;
+                 repeat step cbv;
                  reflexivity).
 
   End S.
@@ -58,7 +58,7 @@ End Test2.
 Module Test3.
   Section S.
     Let x := 0.
-    Fail Definition foo : x = 1 := ltac:(change_no_check 0 with 1 in x; vm_compute).
+    Fail Definition foo : x = 1 := ltac:(change_no_check 0 with 1 in x; repeat step cbv).
     Fail Definition foo : x = 1 := ltac:(vm_cast_no_check (eq_refl 1)).
   End S.
 End Test3.

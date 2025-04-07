@@ -26,9 +26,9 @@ vl_rename (sb : var -> var) v : vl :=
 
 Lemma foo ξ x: rename_vl ξ (var_vl x) = var_vl x.
 (* Succeeds *)
-cbn. Abort.
+repeat step cbv. Abort.
 
 Lemma foo ξ x: rename ξ (var_vl x) = var_vl x.
 (* Fails *)
-cbn.
+repeat step cbv.
 Abort.

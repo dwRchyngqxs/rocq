@@ -27,13 +27,13 @@ Qed.
 Definition bar (H : checker_flags) (a : typing H) :
   size H (type_Rel H a) = size H a.
 Proof.
-vm_compute.
+  repeat step cbv.
 reflexivity.
 Qed.
 
 Definition qux (H : checker_flags) (a : typing H) :
   size H (type_Rel H a) = size H a.
 Proof.
-native_compute.
+  repeat step cbv.
 reflexivity.
 Qed.

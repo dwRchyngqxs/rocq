@@ -110,22 +110,22 @@ val prod_applist_decls : int -> types -> constr list -> types
 
 (** {5 Other term destructors. } *)
 
-(** Transforms a product term {% $ %}(x_1:T_1)..(x_n:T_n)T{% $ %} into the pair
-   {% $ %}([(x_n,T_n);...;(x_1,T_1)],T){% $ %}, where {% $ %}T{% $ %} is not a product. *)
+(** Transforms a product term {% \$ %}(x_1:T_1)..(x_n:T_n)T{% \$ %} into the pair
+   {% \$ %}([(x_n,T_n);...;(x_1,T_1)],T){% \$ %}, where {% \$ %}T{% \$ %} is not a product. *)
 val decompose_prod : constr -> (Name.t binder_annot * constr) list * constr
 
-(** Transforms a lambda term {% $ %}[x_1:T_1]..[x_n:T_n]T{% $ %} into the pair
-   {% $ %}([(x_n,T_n);...;(x_1,T_1)],T){% $ %}, where {% $ %}T{% $ %} is not a lambda. *)
+(** Transforms a lambda term {% \$ %}[x_1:T_1]..[x_n:T_n]T{% \$ %} into the pair
+   {% \$ %}([(x_n,T_n);...;(x_1,T_1)],T){% \$ %}, where {% \$ %}T{% \$ %} is not a lambda. *)
 val decompose_lambda : constr -> (Name.t binder_annot * constr) list * constr
 
 (** Given a positive integer n, decompose a product term
-   {% $ %}(x_1:T_1)..(x_n:T_n)T{% $ %}
-   into the pair {% $ %}([(xn,Tn);...;(x1,T1)],T){% $ %}.
+   {% \$ %}(x_1:T_1)..(x_n:T_n)T{% \$ %}
+   into the pair {% \$ %}([(xn,Tn);...;(x1,T1)],T){% \$ %}.
    Raise a user error if not enough products. *)
 val decompose_prod_n : int -> constr -> (Name.t binder_annot * constr) list * constr
 
-(** Given a positive integer {% $ %}n{% $ %}, decompose a lambda term
-   {% $ %}[x_1:T_1]..[x_n:T_n]T{% $ %} into the pair {% $ %}([(x_n,T_n);...;(x_1,T_1)],T){% $ %}.
+(** Given a positive integer {% \$ %}n{% \$ %}, decompose a lambda term
+   {% \$ %}[x_1:T_1]..[x_n:T_n]T{% \$ %} into the pair {% \$ %}([(x_n,T_n);...;(x_1,T_1)],T){% \$ %}.
    Raise a user error if not enough lambdas. *)
 val decompose_lambda_n : int -> constr -> (Name.t binder_annot * constr) list * constr
 

@@ -269,5 +269,5 @@ Definition is_256 (x : t) : bool :=
 Lemma falso : False.
   assert (is_256 (C_256 0) = true) by reflexivity.
   (* The next line was successful in 8.2pl3 *)
-  Fail assert (is_256 (C_256 0) = false) by (vm_compute; reflexivity).
+  Fail assert (is_256 (C_256 0) = false) by (repeat step cbv; reflexivity).
 Abort.

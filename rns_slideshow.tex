@@ -1,0 +1,80 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Rochester}
+\makeatletter
+\setbeamertemplate{navigation symbols}{%
+    \ifbeamer@noframenumbering\else%
+        \usebeamerfont{footline}%
+        \hspace{2ex}%
+        \raisebox{1.6pt}{\usebeamercolor[fg]{normal
+text}\insertframenumber/\inserttotalframenumber}%
+    \fi
+}
+\renewcommand{\verbatim@font}{\ttfamily\scriptsize}
+\makeatother
+
+\usepackage{tikz}
+\usetikzlibrary{fit, shapes, patterns}
+
+\title{Single-step conversion for change and debug}
+
+\author{\underline{Quentin \textsc{Corradi}}, Clément \textsc{Pit-Claudel}}
+\date{}
+\institute{EPFL}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{A story of a debug session}
+\begin{center}
+\Huge debug_session.v
+\end{center}
+\end{frame}
+
+\begin{frame}{Question}
+Conversions are uncontrollable\only<4-5>{ and so am I}
+\begin{columns}
+\column{0.475\textwidth}
+\begin{minipage}[c][7cm]{0.475\textwidth}
+\includegraphics[scale=0.3]{screen1.png}
+\end{minipage}
+\column{0.475\textwidth}
+\begin{minipage}[c][7cm]{0.475\textwidth}
+\only<1>{\includegraphics[scale=0.3]{screen2.png}}
+\only<2>{\includegraphics[scale=0.3]{screen2alt.png}}
+\only<3>{\includegraphics[scale=0.3]{screen2more.png}}
+\only<4>{\includegraphics[scale=0.3]{screen2question.png}}
+\only<5>{\includegraphics[scale=0.3]{screen2absurd.png}}
+\end{minipage}
+\end{columns}
+\end{frame}
+
+\frame{\begin{center}\Huge debug_session.v\end{center}}
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+\item<1-> Plugin or core?
+\item<2-> What to focus on next?
+\begin{itemize}
+\item<3-> Formalisation of reduction strategies like call-by-value.
+\item<4-> cbv/cbn/native\_compute until pattern.
+\item<5-> You know what we didn't talk about?\uncover<6->{ Qed!}
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\section*{Appendix}
+\begin{frame}[noframenumbering]{Change is irrelevant}
+Do you want to write substitutions by hand?
+
+Do you know what conversions are allowed?
+
+\begin{minipage}[c][7cm]{\textwidth}
+\only<1>{\includegraphics[width=\textwidth]{screen3.png}}
+\only<2>{\includegraphics[width=\textwidth]{screen3alt.png}}
+\only<3>{\includegraphics[width=\textwidth]{screen3more.png}}
+\end{minipage}
+\end{frame}
+
+\end{document}

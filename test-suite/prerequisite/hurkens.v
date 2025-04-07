@@ -320,29 +320,30 @@ Proof.
   (** Large universe *)
   + exact U1.
   + exact (fun X => X).
-  + cbn. exact (fun u F => forall x:u, F x).
-  + cbn. exact (fun _ _ x => x).
-  + cbn. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun u F => forall x:u, F x).
+  + repeat step cbv. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun _ _ x => x).
 
-  + cbn. exact (fun F => u22u1 (forall x, F x)).
-  + cbn. exact (fun _ x => u22u1_unit _ x).
-  + cbn. exact (fun _ x => u22u1_counit _ x).
+  + repeat step cbv. exact (fun F => u22u1 (forall x, F x)).
+  + repeat step cbv. exact (fun _ x => u22u1_unit _ x).
+  + repeat step cbv. exact (fun _ x => u22u1_counit _ x).
   (** Small universe *)
   + exact U0.
   (** The interpretation of the small universe is the image of
       [U0] in [U1]. *)
-  + cbn. exact (fun X => u02u1 X).
-  + cbn. exact (fun u F => u12u0 (forall x:(u02u1 u), u02u1 (F x))).
-  + cbn. exact (fun u F => u12u0 (forall x:u, u02u1 (F x))).
-  + cbn. exact (u12u0 F).
-  + cbn in h.
+  + repeat step cbv. exact (fun X => u02u1 X).
+  + repeat step cbv. exact (fun u F => u12u0 (forall x:(u02u1 u), u02u1 (F x))).
+  + repeat step cbv. exact (fun u F => u12u0 (forall x:u, u02u1 (F x))).
+  + repeat step cbv. exact (u12u0 F).
+  + repeat step cbv in h.
     exact (u12u0_counit _ h).
-  + cbn. easy.
-  + cbn. intros **. now rewrite u22u1_coherent.
-  + cbn. intros * x. exact (u12u0_unit _ x).
-  + cbn. intros * x. exact (u12u0_counit _ x).
-  + cbn. intros * x. exact (u12u0_unit _ x).
-  + cbn. intros * x. exact (u12u0_counit _ x).
+  + repeat step cbv. easy.
+  +  let rec rscbv x := try (step cbv; rscbv x) in rscbv ().
+    intros **. now rewrite u22u1_coherent.
+  + repeat step cbv. intros * x. exact (u12u0_unit _ x).
+  + repeat step cbv. intros * x. exact (u12u0_counit _ x).
+  + repeat step cbv. intros * x. exact (u12u0_unit _ x).
+  + repeat step cbv. intros * x. exact (u12u0_counit _ x).
 Qed.
 
 End Paradox.
@@ -379,7 +380,7 @@ Definition El : MProp -> Prop := @proj1_sig _ _.
 
 Lemma modal : forall P:MProp, M(El P) -> El P.
 Proof.
-  intros [P m]. cbn.
+  intros [P m]. repeat step cbv.
   exact m.
 Qed.
 
@@ -413,28 +414,28 @@ Proof.
   + exact MProp.
   + exact El.
   + exact (fun _ => Forall).
-  + cbn. exact (fun _ _ f => f).
-  + cbn. exact (fun _ _ f => f).
+  + repeat step cbv. exact (fun _ _ f => f).
+  + repeat step cbv. exact (fun _ _ f => f).
   + exact Forall.
-  + cbn. exact (fun _ f => f).
-  + cbn. exact (fun _ f => f).
+  + repeat step cbv. exact (fun _ f => f).
+  + repeat step cbv. exact (fun _ f => f).
   (** Small universe *)
   + exact bool.
   + exact (fun b => El (b2p b)).
-  + cbn. exact (fun _ F => p2b (Forall (fun x => b2p (F x)))).
+  + repeat step cbv. exact (fun _ F => p2b (Forall (fun x => b2p (F x)))).
   + exact (fun _ F => p2b (Forall (fun x => b2p (F x)))).
   + apply p2b.
     exact B.
-  + cbn in h. auto.
-  + cbn. easy.
-  + cbn. easy.
+  + let rec rscbv x := try (step cbv in h; rscbv x) in rscbv (). auto.
+  + let rec rscbv x := try (step cbv; rscbv x) in rscbv (). easy.
+  + let rec rscbv x := try (step cbv; rscbv x) in rscbv (). easy.
   + cbn. auto.
-  + cbn. intros * f.
-    apply p2p1 in f. cbn in f.
+  +  intros * f.
+    apply p2p1 in f. let rec rscbv x := try (step cbv; rscbv x) in rscbv ().
     exact f.
   + cbn. auto.
-  + cbn. intros * f.
-    apply p2p1 in f. cbn in f.
+  + repeat step cbv. intros * f.
+    apply p2p1 in f. repeat step cbv in f.
     exact f.
 Qed.
 
@@ -480,9 +481,9 @@ Proof.
   + exact b2p.
   + exact B.
   + exact h.
-  + cbn. auto.
-  + cbn. auto.
-  + cbn. auto.
+  + repeat step cbv. auto.
+  + repeat step cbv. auto.
+  + repeat step cbv. auto.
 Qed.
 
 End Paradox.
@@ -524,9 +525,9 @@ Proof.
   + exact b2p.
   + exact B.
   + exact h.
-  + cbn. auto.
-  + cbn. auto.
-  + cbn. auto.
+  + repeat step cbv. auto.
+  + repeat step cbv. auto.
+  + repeat step cbv. auto.
 Qed.
 
 End MParadox.
@@ -551,9 +552,9 @@ Proof.
   unshelve (refine (mparadox (exist _ bool (fun x => x)) _ _ _ _
                    (exist _ B (fun x => x)))).
   + intros p. red. red. exact (p2b (El p)).
-  + cbn. intros b. red. exists (b2p b). exact (fun x => x).
-  + cbn. intros [A H]. cbn. apply p2p1.
-  + cbn. intros [A H]. cbn. apply p2p2.
+  + repeat step cbv. intros b. exists (b2p b). exact (fun x => x).
+  + repeat step cbv. intros [A H]. repeat step cbv. apply p2p1.
+  + repeat step cbv. intros [A H]. repeat step cbv. apply p2p2.
 Qed.
 
 End Paradox.
@@ -593,31 +594,31 @@ Proof.
   (** Large universe. *)
   + exact Type1.
   + exact (fun X => X).
-  + cbn. exact (fun u F => forall x, F x).
-  + cbn. exact (fun _ _ x => x).
-  + cbn. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun u F => forall x, F x).
+  + repeat step cbv. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun _ _ x => x).
   + exact (fun F => forall A:Prop, F(up A)).
-  + cbn. exact (fun F f A => f (up A)).
-  + cbn.
+  + repeat step cbv. exact (fun F f A => f (up A)).
+  + repeat step cbv.
     intros F f A.
     specialize (f (down A)).
     rewrite up_down in f.
     exact f.
   + exact Prop.
-  + cbn. exact (fun X => X).
-  + cbn. exact (fun A P => forall x:A, P x).
-  + cbn. exact (fun A P => forall x:A, P x).
-  + cbn. exact P.
+  + repeat step cbv. exact (fun X => X).
+  + repeat step cbv. exact (fun A P => forall x:A, P x).
+  + repeat step cbv. exact (fun A P => forall x:A, P x).
+  + repeat step cbv. exact P.
   + exact h.
-  + cbn. easy.
-  + cbn.
+  + repeat step cbv. easy.
+  + let rec rscbv x := try (step cbv; rscbv x) in rscbv ().
     intros F f A.
-    destruct (up_down A). cbn.
+    destruct (up_down A). repeat step cbv.
     reflexivity.
-  + cbn. exact (fun _ _ x => x).
-  + cbn. exact (fun _ _ x => x).
-  + cbn. exact (fun _ _ x => x).
-  + cbn. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun _ _ x => x).
 Qed.
 
 End Paradox.
@@ -662,11 +663,11 @@ Proof.
   (** Large universe *)
   + exact U.
   + exact (fun X=>X).
-  + cbn. exact (fun X F => forall x:X, F x).
-  + cbn. exact (fun _ _ x => x).
-  + cbn. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun X F => forall x:X, F x).
+  + repeat step cbv. exact (fun _ _ x => x).
+  + repeat step cbv. exact (fun _ _ x => x).
   + exact (fun F => forall x:A, F (up x)).
-  + cbn. exact (fun _ f => fun x:A => f (up x)).
+  + repeat step cbv. exact (fun _ f => fun x:A => f (up x)).
   + cbn. intros * f X.
     specialize (f (down X)).
     rewrite up_down in f.
@@ -674,15 +675,15 @@ Proof.
   (** Small universe *)
   + exact A.
   (** The interpretation of [A] as a universe is [U]. *)
-  + cbn. exact up.
-  + cbn. exact (fun _ F => down (forall x, up (F x))).
-  + cbn. exact (fun _ F => down (forall x, up (F x))).
-  + cbn. exact (down False).
+  + repeat step cbv. exact up.
+  + repeat step cbv. exact (fun _ F => down (forall x, up (F x))).
+  + repeat step cbv. exact (fun _ F => down (forall x, up (F x))).
+  + repeat step cbv. exact (down False).
   + rewrite up_down in p.
     exact p.
-  + cbn. easy.
-  + cbn. intros ? f X.
-    destruct (up_down X). cbn.
+  + repeat step cbv. easy.
+  + let rec rscbv x := try (step cbv; rscbv x) in rscbv (). intros ? f X.
+    destruct (up_down X). repeat step cbv.
     reflexivity.
   + cbn. intros ? ? f.
     rewrite up_down.

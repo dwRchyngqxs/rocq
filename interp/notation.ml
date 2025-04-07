@@ -805,7 +805,7 @@ let warn_abstract_large_num =
     (fun (ty,f) ->
       strbrk "To avoid stack overflow, large numbers in " ++
       pr_qualid ty ++ strbrk " are interpreted as applications of " ++
-      Nametab.pr_global_env (Termops.vars_of_env (Global.env ())) f ++ strbrk ".")
+      Termops.pr_global_env (Global.env ()) f ++ strbrk ".")
 
 (***********************************************************************)
 
@@ -2495,7 +2495,8 @@ let error_notation_not_reference ?loc ntn ntns =
 let interp_notation_as_global_reference_expanded ?loc ~head test ntn sc =
   let scopes = match sc with
   | Some sc ->
-      let scope = find_scope (find_delimiters_scope sc) in
+      let sc = try String.Map.find sc !delimiters_map with Not_found -> sc in
+      let scope = find_scope sc in
       String.Map.add sc scope String.Map.empty
   | None -> !scope_map in
   let ntns = browse_notation true ntn scopes in
