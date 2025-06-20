@@ -33,12 +33,13 @@ let occs_nums = Entry.make "occs_nums"
 let occs = Entry.make "occs"
 let delta_flag = Entry.make "delta_flag"
 let strategy_flag = Entry.make "strategy_flag"
+let reduction = Entry.make "reduction"
 }
 
 
 GRAMMAR EXTEND Gram
   GLOBAL: int_or_var nat_or_var occs occs_nums unfold_occ pattern_occ
-    delta_flag strategy_flag ref_or_pattern_occ red_expr;
+    delta_flag strategy_flag reduction ref_or_pattern_occ red_expr;
 
   int_or_var:
     [ [ n = integer  -> { ArgArg n }
@@ -90,10 +91,33 @@ GRAMMAR EXTEND Gram
       | h = OPT [ IDENT "head" -> { () } ]; d = delta_flag -> { all_with ~head:(Option.has_some h) d }
     ] ]
   ;
+  reduction:
+    [ [ IDENT "cast" -> { Step.RHCast AllOccurrences }
+      | IDENT "beta" -> { Step.RHBeta AllOccurrences }
+      | IDENT "zeta" -> { Step.RHZeta AllOccurrences }
+      | IDENT "zeta_match"; pc = smart_global; proj = OPT [ c = natural; d = OPT natural -> { c, d } ]
+        -> { Step.RHZetaMatch ((pc, proj), AllOccurrences) }
+      | IDENT "delta"; name = OPT smart_global -> { Step.RHDelta (name, AllOccurrences) }
+      | IDENT "eta" -> { Step.RHEta }
+      | IDENT "eta'" -> { Step.RHEtaPrime AllOccurrences }
+      | IDENT "evar" -> { Step.RHEvar AllOccurrences }
+      | IDENT "fix" -> { Step.RHFix AllOccurrences }
+      | IDENT "fix'" -> { Step.RHFixPrime AllOccurrences }
+      | IDENT "cofix" -> { Step.RHCofix AllOccurrences }
+      | IDENT "cofix'" -> { Step.RHCofixPrime AllOccurrences }
+      | IDENT "match" -> { Step.RHMatch AllOccurrences }
+      | IDENT "uip" -> { Step.RHInferUnique AllOccurrences }
+      | IDENT "head" -> { Step.RHead }
+      | IDENT "cbv" -> { Step.RCbv }
+      | IDENT "cbn" -> { Step.RCbn }
+      | IDENT "lazy" -> { Step.RLazy }
+    ] ]
+  ;
 
   red_expr:
     [ [ IDENT "red" -> { Red }
       | IDENT "hnf" -> { Hnf }
+      | IDENT "step"; r = reduction -> { Step r }
       | IDENT "simpl"; h = OPT [ IDENT "head" -> { () } ];
         d = delta_flag; po = OPT ref_or_pattern_occ -> { Simpl (all_with ~head:(Option.has_some h) d,po) }
       | IDENT "cbv"; s = strategy_flag -> { Cbv s }
