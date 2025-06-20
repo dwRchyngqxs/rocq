@@ -1710,6 +1710,7 @@ module MiniEConstr = struct
   let unsafe_to_constr_array v = v
   let unsafe_eq = Refl
   let unsafe_relevance_eq = Refl
+  let unsafe_instance_eq = Refl
 
   type evclos = {
     evc_map : (int * Vars.substituend Lazy.t) Id.Map.t;

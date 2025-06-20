@@ -923,21 +923,15 @@ let make_leibniz_proof env c ty r =
       rew_from = subst1 r.rew_from c; rew_to = subst1 r.rew_to c; rew_prf = prf }
 
 let fold_match ?(force=false) env sigma c =
-  let case = destCase sigma c in
-  let (ci, (p,_), iv, c, brs) = EConstr.expand_case env sigma case in
+  let ci, u, pms, (p, pr), _, _, brs = destCase sigma c in
+  let pctx, brctxs = EConstr.annotate_case env sigma ci u pms (p, pr) brs in
   let cty = Retyping.get_type_of env sigma c in
   let dep, pred, sk =
-    let env', ctx, body =
-      let ctx, pred = decompose_lambda_decls sigma p in
-      let env' = push_rel_context ctx env in
-        env', ctx, pred
-    in
-    let sortp = Retyping.get_sort_quality_of env' sigma body in
+    let body = snd p in
+    let sortp = Retyping.get_sort_quality_of (push_rel_context pctx env) sigma body in
     let sortc = Retyping.get_sort_quality_of env sigma cty in
     let dep = not (noccurn sigma 1 body) in
-    let pred = if dep then p else
-        it_mkProd_or_LetIn (subst1 mkProp body) (List.tl ctx)
-    in
+    let pred = if dep then body else it_mkProd_or_LetIn (subst1 mkProp body) (List.tl pctx) in
     let sk =
       (* not sure how correct this is *)
       if UnivGen.QualityOrSet.is_prop sortp then
@@ -954,10 +948,8 @@ let fold_match ?(force=false) env sigma c =
         else case_nodep)
     in
     match Ind_tables.lookup_scheme sk ci.ci_ind with
-    | Some cst ->
-        dep, pred, cst
-    | None ->
-      raise Not_found
+    | Some cst -> dep, pred, cst
+    | None -> raise Not_found
   in
   let app =
     let sk = if Global.is_polymorphic (ConstRef sk)
@@ -966,8 +958,9 @@ let fold_match ?(force=false) env sigma c =
     in
     let ind, args = Inductiveops.find_mrectype env sigma cty in
     let pars, args = List.chop ci.ci_npar args in
-    let meths = Array.to_list brs in
-      applist (sk, pars @ [pred] @ meths @ args @ [c])
+    let acc = args @ [c] in
+    let acc = Array.fold_right2 (fun (_, br) ctx acc -> it_mkLambda_or_LetIn br ctx :: acc) brs brctxs acc in
+    applist (sk, pars @ pred :: acc)
   in
     sk, app
 
@@ -1198,7 +1191,7 @@ let subterm all flags (s : 'a pure_strategy) : 'a pure_strategy =
         in state, res
 
       | Case (ci, u, pms, p, iv, c, brs) ->
-        let (ci, (p,rp), iv, c, brs) = EConstr.expand_case env (goalevars evars) (ci, u, pms, p, iv, c, brs) in
+        let ep, brs = EConstr.expand_case env (goalevars evars) ci u pms p brs in
         let cty = Retyping.get_type_of env (goalevars evars) c in
         let evars', eqty = app_poly_sort prop env evars rocq_eq [| cty |] in
         let cstr' = Some eqty in
@@ -1208,9 +1201,10 @@ let subterm all flags (s : 'a pure_strategy) : 'a pure_strategy =
         let state, res =
           match c' with
           | Success r ->
-            let case = mkCase (EConstr.contract_case env (goalevars evars) (ci, (lift 1 p,rp), map_invert (lift 1) iv, mkRel 1, Array.map (lift 1) brs)) in
+            let u, pms, cp, brs = EConstr.contract_case env (goalevars evars) ci (lift 1 ep) (Array.map (lift 1) brs) in
+            let case = mkCase (ci, u, pms, (cp, snd p), map_invert (lift 1) iv, mkRel 1, brs) in
             let res = make_leibniz_proof env case ty r in
-              state, Success (coerce env (prop,cstr) res)
+            state, Success (coerce env (prop,cstr) res)
           | Fail | Identity ->
             if Array.for_all (Int.equal 0) ci.ci_cstr_ndecls then
               let evars', eqty = app_poly_sort prop env evars rocq_eq [| ty |] in
@@ -1230,8 +1224,10 @@ let subterm all flags (s : 'a pure_strategy) : 'a pure_strategy =
               in
                 match found with
                 | Some r ->
-                  let ctxc = mkCase (EConstr.contract_case env (goalevars evars) (ci, (lift 1 p, rp), map_invert (lift 1) iv, lift 1 c, Array.of_list (List.rev (brs' c')))) in
-                    state, Success (make_leibniz_proof env ctxc ty r)
+                  let u, pms, cp, brs' =
+                    EConstr.contract_case env (goalevars evars) ci (lift 1 ep) (Array.of_list (List.rev (brs' c'))) in
+                  let ctxc = mkCase (ci, u, pms, (cp, snd p), map_invert (lift 1) iv, lift 1 c, brs') in
+                  state, Success (make_leibniz_proof env ctxc ty r)
                 | None -> state, c'
             else
               match try Some (fold_match env (goalevars evars) t) with Not_found -> None with
