@@ -491,7 +491,9 @@ let simple_make_case_or_project env sigma ci pred invert c branches =
   let ind = ci.Constr.ci_ind in
   let projs = get_projections env ind in
   match projs with
-  | None -> mkCase (EConstr.contract_case env sigma (ci, pred, invert, c, branches))
+  | None ->
+    let u, pms, p, branches = EConstr.contract_case env sigma ci (fst pred) branches in
+    mkCase (ci, u, pms, (p, snd pred), invert, c, branches)
   | Some ps -> make_project env sigma ind (fst pred) c branches ps
 
 let make_case_or_project env sigma indt ci pred c branches =
@@ -499,8 +501,9 @@ let make_case_or_project env sigma indt ci pred c branches =
   let projs = get_projections env ind in
   match projs with
   | None ->
-     let invert = make_case_invert env sigma indt ~case_relevance:(snd pred) ci in
-     mkCase (EConstr.contract_case env sigma (ci, pred, invert, c, branches))
+    let invert = make_case_invert env sigma indt ~case_relevance:(snd pred) ci in
+    let u, pms, p, branches = EConstr.contract_case env sigma ci (fst pred) branches in
+    mkCase (ci, u, pms, (p, snd pred), invert, c, branches)
   | Some ps -> make_project env sigma ind (fst pred) c branches ps
 
 (* substitution in a signature *)

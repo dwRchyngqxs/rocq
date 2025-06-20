@@ -593,70 +593,66 @@ let iter sigma f c =
     List.iter (fun c -> f c) args
   | _ -> Constr.iter f c
 
-let expand_case env _sigma (ci, u, pms, p, iv, c, bl) =
-  let u = EInstance.unsafe_to_instance u in
-  let pms = unsafe_to_constr_array pms in
-  let p = unsafe_to_return p in
-  let iv = unsafe_to_case_invert iv in
-  let c = unsafe_to_constr c in
-  let bl = unsafe_to_branches bl in
-  let (ci, (p,r), iv, c, bl) = Inductive.expand_case env (ci, u, pms, p, iv, c, bl) in
-  let p = of_constr p in
-  let r = ERelevance.make r in
-  let c = of_constr c in
-  let iv = of_case_invert iv in
-  let bl = of_constr_array bl in
-  (ci, (p,r), iv, c, bl)
+let expand_case env _sigma ci u pms p bl =
+  let p, bl =
+    Inductive.expand_case env ci
+      (EInstance.unsafe_to_instance u)
+      (unsafe_to_constr_array pms)
+      (unsafe_to_return p)
+      (unsafe_to_branches bl)
+  in
+  of_constr p, of_constr_array bl
 
-let annotate_case env sigma (ci, u, pms, p, iv, c, bl as case) =
-  let (_, (p,r), _, _, bl) = expand_case env sigma case in
+let annotate_case env sigma ci u pms ((p, _), _) bl =
+  let pctx, blctx =
+    Environ.expand_case_contexts env
+      (ci.ci_ind, EInstance.unsafe_to_instance u)
+      (unsafe_to_constr_array pms)
+      p bl
+  in
+  of_rel_context pctx, Array.map of_rel_context blctx
+
+let annotate_branch env _sigma u pms (ind, i) br =
+  let ctx =
+    Environ.expand_branch_context env
+      (ind, EInstance.unsafe_to_instance u)
+      (unsafe_to_constr_array pms)
+      br (i - 1)
+  in
+  of_rel_context ctx
+
+let annotate_branches env _sigma ci u pms br =
+  let ctxl =
+    Environ.expand_branch_contexts env
+      (ci.ci_ind, EInstance.unsafe_to_instance u)
+      (unsafe_to_constr_array pms)
+      br
+  in
+  Array.map of_rel_context ctxl
+
+let expand_arity env _sigma ci u pms p =
   let p =
-    (* Too bad we need to fetch this data in the environment, should be in the
-      case_info instead. *)
-    let (_, mip) = Inductive.lookup_mind_specif env ci.ci_ind in
-    decompose_lambda_n_decls sigma (mip.Declarations.mind_nrealdecls + 1) p
+    Inductive.expand_arity env ci
+      (EInstance.unsafe_to_instance u)
+      (unsafe_to_constr_array pms)
+      (unsafe_to_return p)
   in
-  let mk_br c n = decompose_lambda_n_decls sigma n c in
-  let bl = Array.map2 mk_br bl ci.ci_cstr_ndecls in
-  (ci, u, pms, (p,r), iv, c, bl)
+  of_constr p
 
-let expand_branch env _sigma u pms (ind, i) (nas, _br) =
-  let open Declarations in
-  let u = EInstance.unsafe_to_instance u in
-  let pms = unsafe_to_constr_array pms in
-  let (mib, mip) = Inductive.lookup_mind_specif env ind in
-  let paramdecl = Vars.subst_instance_context u mib.mind_params_ctxt in
-  let paramsubst = Vars.subst_of_rel_context_instance paramdecl pms in
-  let (ctx, _) = mip.mind_nf_lc.(i - 1) in
-  let (ctx, _) = List.chop mip.mind_consnrealdecls.(i - 1) ctx in
-  let nas =
-    let gen : type a b. (a,b) eq -> (_,a) Context.pbinder_annot array ->
-      (_,b) Context.pbinder_annot array =
-      fun Refl x -> x
-    in
-    gen unsafe_relevance_eq nas
+let expand_branch env _sigma ci u pms bl =
+  let bl =
+    Inductive.expand_branch env ci
+      (EInstance.unsafe_to_instance u)
+      (unsafe_to_constr_array pms)
+      (unsafe_to_branches bl)
   in
-  let ans = Inductive.instantiate_context u paramsubst nas ctx in
-  let ans : rel_context =
-    match Evd.MiniEConstr.(unsafe_eq, unsafe_relevance_eq) with
-    | Refl, Refl -> ans
-  in
-  ans
+  of_constr_array bl
 
-let contract_case env _sigma (ci, (p,r), iv, c, bl) =
+let contract_case env _sigma ci p bl =
   let p = unsafe_to_constr p in
-  let r = ERelevance.unsafe_to_relevance r in
-  let iv = unsafe_to_case_invert iv in
-  let c = unsafe_to_constr c in
   let bl = unsafe_to_constr_array bl in
-  let (ci, u, pms, p, iv, c, bl) = Inductive.contract_case env (ci, (p,r), iv, c, bl) in
-  let u = EInstance.make u in
-  let pms = of_constr_array pms in
-  let p = of_return p in
-  let iv = of_case_invert iv in
-  let c = of_constr c in
-  let bl = of_branches bl in
-  (ci, u, pms, p, iv, c, bl)
+  let u, pms, (nas, p), bl = Inductive.contract_case env ci p bl in
+  EInstance.make u, of_constr_array pms, (Array.map of_binder_annot nas, of_constr p), of_branches bl
 
 let iter_with_full_binders env sigma g f n c =
   let open Context.Rel.Declaration in
@@ -671,10 +667,14 @@ let iter_with_full_binders env sigma g f n c =
   | Evar ((_,l) as ev) ->
     let l = Evd.expand_existential sigma ev in
     List.iter (fun c -> f n c) l
-  | Case (ci,u,pms,p,iv,c,bl) ->
-    let (ci, _, pms, (p,_), iv, c, bl) = annotate_case env sigma (ci, u, pms, p, iv, c, bl) in
-    let f_ctx (ctx, c) = f (List.fold_right g ctx n) c in
-    Array.Fun1.iter f n pms; f_ctx p; iter_invert (f n) iv; f n c; Array.iter f_ctx bl
+  | Case (ci, u, pms, p, iv, c, bl) ->
+    let pctx, bctxl = annotate_case env sigma ci u pms p bl in
+    let f_ctx ctx c = f (List.fold_right g ctx n) c in
+    Array.Fun1.iter f n pms;
+    f_ctx pctx (snd (fst p));
+    iter_invert (f n) iv;
+    f n c;
+    Array.iter2 (fun ctx (_, b) -> f_ctx ctx b) bctxl bl
   | Proj (_,_,c) -> f n c
   | Fix (_,(lna,tl,bl)) ->
     Array.iter (f n) tl;

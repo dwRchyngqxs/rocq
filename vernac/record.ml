@@ -573,7 +573,8 @@ let build_named_proj ~primitive ~flags ~univs ~uinstance ~kind env paramdecls
         let ci = Inductiveops.make_case_info env indsp LetStyle in
         (* Record projections are always NoInvert because they're at
            constant relevance *)
-        mkCase (Inductive.contract_case env (ci, (p, rci), NoInvert, mkRel 1, [|branch|])), None
+        let u, pms, p, bl = Inductive.contract_case env ci p [|branch|] in
+        mkCase (ci, u, pms, (p, rci), NoInvert, mkRel 1, bl), None
   in
   let proj = it_mkLambda_or_LetIn (mkLambda (x,rp,body)) paramdecls in
   let projtyp = it_mkProd_or_LetIn (mkProd (x,rp,ccl)) paramdecls in

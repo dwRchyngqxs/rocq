@@ -281,13 +281,13 @@ and nf_stk ?from:(from=0) env sigma c t stk  =
   | Zswitch sw :: stk ->
       assert (from = 0) ;
       let ((mind,_ as ind), u), allargs = find_rectype_a env sigma (EConstr.of_constr t) in
-      let (mib,mip) = Inductive.lookup_mind_specif env ind in
+      let mib, mip = lookup_mind_specif env ind in
       let nparams = mib.mind_nparams in
-      let params,realargs = Util.Array.chop nparams allargs in
+      let params, realargs = Util.Array.chop nparams allargs in
       let pctx =
-        let realdecls, _ = List.chop mip.mind_nrealdecls mip.mind_arity_ctxt in
+        let realdecls = List.firstn mip.mind_nrealdecls mip.mind_arity_ctxt in
         let nas = List.rev_map RelDecl.get_annot realdecls @ [nameR (Id.of_string "c")] in
-        expand_arity (mib, mip) (ind, u) params (Array.of_list nas)
+        expand_arity_specif mip (ind, u) (get_match_param_context mib u params) (Array.of_list nas)
       in
       let p, relevance = nf_predicate env sigma (ind,u) mip params (type_of_switch sw) pctx in
       (* Calcul du type des branches *)

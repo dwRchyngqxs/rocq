@@ -557,11 +557,10 @@ let rec execute env sigma cstr =
         sigma, make_judge cstr ty
 
     | Case (ci, u, pms, p, iv, c, lf) ->
-        let case = (ci, u, pms, p, iv, c, lf) in
-        let (ci, (p,rp), iv, c, lf) = EConstr.expand_case env sigma case in
+        let ep, elf = EConstr.expand_case env sigma ci u pms p lf in
         let sigma, cj = execute env sigma c in
-        let sigma, pj = execute env sigma p in
-        let sigma, lfj = execute_array env sigma lf in
+        let sigma, pj = execute env sigma ep in
+        let sigma, lfj = execute_array env sigma elf in
         let sigma = match iv with
           | NoInvert -> sigma
           | CaseInvert {indices} ->
@@ -572,7 +571,7 @@ let rec execute env sigma cstr =
             let sigma = check_actual_type env sigma cj tj.utj_val in
             sigma
         in
-        judge_of_case env sigma case ci (pj,rp) iv cj lfj
+        judge_of_case env sigma (ci, u, pms, p, iv, c, lf) ci (pj, snd p) iv cj lfj
 
     | Fix ((vn,i as vni),recdef) ->
         let sigma, (_,tys,_ as recdef') = execute_recdef env sigma recdef in
@@ -782,23 +781,22 @@ let rec recheck_against env sigma good c =
 
     | Case (gci, gu, gpms, gp, giv, gc, glf),
       Case (ci, u, pms, p, iv, c, lf) ->
-      let (gci, (gp,_), giv, gc, glf) = EConstr.expand_case env sigma (gci, gu, gpms, gp, giv, gc, glf) in
-      let case = (ci, u, pms, p, iv, c, lf) in
-      let (ci, (p,rp), iv, c, lf) = EConstr.expand_case env sigma case in
+      let gp, glf = EConstr.expand_case env sigma gci gu gpms gp glf in
+      let ep, elf = EConstr.expand_case env sigma ci u pms p lf in
       let sigma, changedc, cj = recheck_against env sigma gc c in
-      let sigma, changedp, pj = recheck_against env sigma gp p in
+      let sigma, changedp, pj = recheck_against env sigma gp ep in
       let (sigma, changedlf), lfj =
-        if Array.length glf <> Array.length lf then
+        if Array.length glf <> Array.length elf then
           Array.fold_left_map (fun (sigma,changed) c ->
               let sigma, j = execute env sigma c in
               (sigma, changed), j)
             (sigma, Changed {bodyonly=lazy false})
-            lf
+            elf
         else
           Array.fold_left2_map (fun (sigma,changed) good c ->
               let sigma, changed', t = recheck_against env sigma good c in
               (sigma, merge_changes changed changed'), t)
-            (sigma,Same) glf lf
+            (sigma,Same) glf elf
       in
       let sigma, changediv = match giv, iv with
         | _, NoInvert -> sigma, Same
@@ -822,7 +820,7 @@ let rec recheck_against env sigma good c =
       in
       if unchanged changedc && unchanged changedp && unchanged changediv && bodyonly changedlf
       then assume_unchanged_type sigma
-      else maybe_changed (judge_of_case env sigma case ci (pj,rp) iv cj lfj)
+      else maybe_changed (judge_of_case env sigma (ci, u, pms, p, iv, c, lf) ci (pj, snd p) iv cj lfj)
 
     | Proj (gp, _, gc),
       Proj (p, _, c) ->

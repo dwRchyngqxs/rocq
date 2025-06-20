@@ -132,41 +132,25 @@ val abstract_constructor_type_relatively_to_inductive_types_context :
 
 val inductive_params : mind_specif -> int
 
-(** Given an inductive type and its parameters, builds the context of the return
-    clause, including the inductive being eliminated. The additional binder
-    array is only used to set the names of the context variables, we use the
-    less general type to make it easy to use this function on Case nodes. *)
-val expand_arity : mind_specif -> pinductive -> constr array ->
-  Name.t binder_annot array -> rel_context
-
-(** Given an inductive type and its parameters, builds the context of the return
-    clause, including the inductive being eliminated. The additional binder
-    array is only used to set the names of the context variables, we use the
-    less general type to make it easy to use this function on Case nodes. *)
-val expand_branch_contexts : mind_specif -> UVars.Instance.t -> constr array ->
-  (Name.t binder_annot array * 'a) array -> rel_context array
-
-type ('constr,'types,'r) pexpanded_case =
-  (case_info * ('constr * 'r) * 'constr pcase_invert * 'constr * 'constr array)
-
-type expanded_case = (constr,types,Sorts.relevance) pexpanded_case
-
 (** Given a pattern-matching represented compactly, expands it so as to produce
     lambda and let abstractions in front of the return clause and the pattern
     branches. *)
-val expand_case : env -> case -> expanded_case
+val expand_case : env -> case_info -> UVars.Instance.t -> constr array ->
+  (types, 'r) pcase_return -> (constr, 'r) pcase_branch array -> types * constr array
 
-val expand_case_specif : mutual_inductive_body -> case -> expanded_case
+val expand_branch : env -> case_info -> UVars.Instance.t -> constr array ->
+  (constr, 'r) pcase_branch array -> constr array
+
+val expand_arity : env -> case_info -> UVars.Instance.t -> constr array ->
+  (types, 'r) pcase_return -> types
+
+val expand_case_specif : mind_specif -> case_info -> UVars.Instance.t -> constr array ->
+  (types, 'r) pcase_return -> (constr, 'r) pcase_branch array -> types * constr array
 
 (** Dual operation of the above. Fails if the return clause or branch has not
     the expected form. *)
-val contract_case : env -> expanded_case -> case
-
-(** [instantiate_context u subst nas ctx] applies both [u] and [subst]
-    to [ctx] while replacing names using [nas] (order reversed). In particular,
-    assumes that [ctx] and [nas] have the same length. *)
-val instantiate_context : Instance.t -> Vars.substl -> Name.t binder_annot array ->
-  rel_context -> rel_context
+val contract_case : env -> case_info -> types -> constr array ->
+  UVars.Instance.t * constr array * ((Name.t, Sorts.relevance) Context.pbinder_annot array * types) * (constr, Sorts.relevance) pcase_branch array
 
 val build_branches_type :
   pinductive -> mutual_inductive_body * one_inductive_body ->

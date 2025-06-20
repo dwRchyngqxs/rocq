@@ -719,6 +719,7 @@ module MiniEConstr : sig
 
   val unsafe_eq : (t, Constr.t) eq
   val unsafe_relevance_eq : (ERelevance.t, Sorts.relevance) eq
+  val unsafe_instance_eq : (EInstance.t, UVars.Instance.t) eq
 
   val of_named_decl : (Constr.t, Constr.types, Sorts.relevance) Context.Named.Declaration.pt ->
     (t, t, ERelevance.t) Context.Named.Declaration.pt
