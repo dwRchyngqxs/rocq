@@ -70,9 +70,11 @@ let protect_pattern_in_binder bl c ctypopt =
           let evd,c = aux (push_rel (LocalDef (x,b,t)) env) evd c in
           evd, mkLetIn (x,t,b,c)
         | Case (ci,u,pms,p,iv,a,bl) ->
-          let (ci, p, iv, a, bl) = EConstr.expand_case env evd (ci, u, pms, p, iv, a, bl) in
-          let evd,bl = Array.fold_left_map (aux env) evd bl in
-          evd, mkCase (EConstr.contract_case env evd (ci, p, iv, a, bl))
+          (* TODO HERE: contract_branch *)
+          let ep, bl = EConstr.expand_case env evd ci u pms p bl in
+          let evd, bl = Array.fold_left_map (aux env) evd bl in
+          let u, pms, cp, bl = EConstr.contract_case env evd ci ep bl in
+          evd, mkCase (ci, u, pms, (cp, snd p), iv, a, bl)
         | Cast (c,_,_)    -> f env evd c  (* we remove the cast we had set *)
         (* This last case may happen when reaching the proof of an
            impossible case, as when pattern-matching on a vector of length 1 *)
