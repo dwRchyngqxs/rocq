@@ -267,25 +267,49 @@ val template_polymorphic_pind : pinductive -> env -> bool
 
 (** {6 Changes of representation of Case nodes} *)
 
-(** Given an inductive type and its parameters, builds the context of the return
-    clause, including the inductive being eliminated. The additional binder
-    array is only used to set the names of the context variables, we use the
-    less general type to make it easy to use this function on Case nodes. *)
-val expand_arity : Declarations.mind_specif -> pinductive -> constr array ->
-  Name.t binder_annot array -> rel_context
+(** Given a pattern-matching represented compactly, expands the context of its
+    return clause and branches. *)
+val expand_case_contexts : env -> pinductive -> constr array ->
+  (Name.t, 'r) Context.pbinder_annot array ->
+  ((Name.t, 'r) Context.pbinder_annot array * 'a) array ->
+  rel_context * rel_context array
 
 (** Given an inductive type and its parameters, builds the context of the return
     clause, including the inductive being eliminated. The additional binder
-    array is only used to set the names of the context variables, we use the
-    less general type to make it easy to use this function on Case nodes. *)
-val expand_branch_contexts : Declarations.mind_specif -> UVars.Instance.t -> constr array ->
-  (Name.t binder_annot array * 'a) array -> rel_context array
+    array is only used to set the names of the context variables. *)
+val expand_arity : env -> pinductive -> constr array ->
+  (Name.t, 'r) Context.pbinder_annot array -> rel_context
+
+val expand_arity_specif : one_inductive_body -> pinductive ->
+  Vars.substl -> (Name.t, 'r) Context.pbinder_annot array -> rel_context
+
+(** Given an inductive type and its parameters, builds the context of the
+    branches. The additional binder array is only used to set the names of
+    the context variables. *)
+val expand_branch_contexts : env -> pinductive -> constr array ->
+  ((Name.t, 'r) Context.pbinder_annot array * 'a) array -> rel_context array
+
+val expand_branch_contexts_specif : one_inductive_body -> UVars.Instance.t ->
+  Vars.substl -> ((Name.t, 'r) Context.pbinder_annot array * 'a) array -> rel_context array
+
+(** Given an inductive type and its parameters, builds the context of one
+    branch. The additional binder array is only used to set the names of
+    the context variables. *)
+val expand_branch_context : env -> pinductive -> constr array ->
+  ((Name.t, 'r) Context.pbinder_annot array * 'a) array -> int -> rel_context
+
+val expand_branch_context_specif : one_inductive_body -> UVars.Instance.t ->
+  Vars.substl -> ((Name.t, 'r) Context.pbinder_annot array * 'a) array -> int -> rel_context
+
+(** Builds the intermediate context needed to build other contexts in the a Case node. *)
+val get_match_param_context : mutual_inductive_body -> UVars.Instance.t ->
+  constr array -> Vars.substl
 
 (** [instantiate_context u subst nas ctx] applies both [u] and [subst]
   to [ctx] while replacing names using [nas] (order reversed). In particular,
   assumes that [ctx] and [nas] have the same length. *)
-val instantiate_context : UVars.Instance.t -> Vars.substl -> Name.t binder_annot array ->
-  rel_context -> rel_context
+val instantiate_context : UVars.Instance.t -> Vars.substl ->
+  (Name.t, 'r) Context.pbinder_annot array -> rel_context -> rel_context
 
 
 (** {6 Name quotients} *)

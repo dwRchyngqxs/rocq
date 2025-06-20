@@ -282,30 +282,50 @@ let instantiate_context u subst nas ctx =
   in
   instantiate (Array.length nas - 1) ctx
 
-let expand_arity (mib, mip) (ind, u) params nas =
-  let open Context.Rel.Declaration in
-  let paramdecl = Vars.subst_instance_context u mib.mind_params_ctxt in
-  let params = Vars.subst_of_rel_context_instance paramdecl params in
-  let realdecls, _ = List.chop mip.mind_nrealdecls mip.mind_arity_ctxt in
+let get_match_param_context mib u params =
+  Vars.subst_of_rel_context_instance (Vars.subst_instance_context u mib.mind_params_ctxt) params
+
+let expand_arity_specif mip (ind, u) params nas =
+  let realdecls = List.firstn mip.mind_nrealdecls mip.mind_arity_ctxt in
   let self =
     let u = UVars.Instance.abstract_instance (UVars.Instance.length u) in
     let args = Context.Rel.instance mkRel 0 mip.mind_arity_ctxt in
     mkApp (mkIndU (ind, u), args)
   in
   let na = Context.make_annot Anonymous mip.mind_relevance in
-  let realdecls = LocalAssum (na, self) :: realdecls in
-  instantiate_context u params nas realdecls
+  instantiate_context u params nas (LocalAssum (na, self) :: realdecls)
 
-let expand_branch_contexts (mib, mip) u params br =
-  let paramdecl = Vars.subst_instance_context u mib.mind_params_ctxt in
-  let paramsubst = Vars.subst_of_rel_context_instance paramdecl params in
-  let build_one_branch i (nas, _) (ctx, _) =
-    let ctx, _ = List.chop mip.mind_consnrealdecls.(i) ctx in
-    let ctx = instantiate_context u paramsubst nas ctx in
-    ctx
-  in
-  Array.map2_i build_one_branch br mip.mind_nf_lc
+let expand_arity env ((ind, tyi), u) params nas =
+  let mib = lookup_mind ind env in
+  let mip = mib.mind_packets.(tyi) in
+  expand_arity_specif mip ((ind, tyi), u) (get_match_param_context mib u params) nas
 
+let expand_branch_context_specif mip u params br i =
+  let binds = CList.firstn (mip.mind_consnrealdecls.(i)) (fst mip.mind_nf_lc.(i)) in
+  instantiate_context u params (fst br.(i)) binds
+
+let expand_branch_context env ((ind, tyi), u) params br i =
+  let mib = lookup_mind ind env in
+  let mip = mib.mind_packets.(tyi) in
+  expand_branch_context_specif mip u (get_match_param_context mib u params) br i
+
+let expand_branch_contexts_specif mip u params br =
+  assert (Int.equal (Array.length br) (Array.length mip.mind_nf_lc));
+  Array.init (Array.length br) (expand_branch_context_specif mip u params br)
+
+let expand_branch_contexts env ((ind, tyi), u) params br =
+  let mib = lookup_mind ind env in
+  let mip = mib.mind_packets.(tyi) in
+  expand_branch_contexts_specif mip u (get_match_param_context mib u params) br
+
+let expand_case_contexts env ((ind, tyi), u as pind) params nas br =
+  let mib = lookup_mind ind env in
+  let mip = mib.mind_packets.(tyi) in
+  (* Γ ⊢ c : I@{u} params args *)
+  (* Γ, indices, self : I@{u} params indices ⊢ p : Type *)
+  let params = get_match_param_context mib u params in
+  (* Expand the contexts of the return clause and branches *)
+  expand_arity_specif mip pind params nas, expand_branch_contexts_specif mip u params br
 
 let mem_mind kn env = Mindmap_env.mem kn env.env_inductives
 

@@ -434,9 +434,9 @@ let rec travel_aux jinfo continuation_tac (expr_info : constr infos) =
             ++ str " can not contain a recursive call to "
             ++ Id.print expr_info.f_id ++ str ".") )
       | Case (ci, u, pms, t, iv, a, l) ->
-        let (ci, t, iv, a, l) = EConstr.expand_case env sigma (ci, u, pms, t, iv, a, l) in
+        let et, l = EConstr.expand_case env sigma ci u pms t l in
         let continuation_tac_a =
-          jinfo.casE (travel jinfo) (ci, t, iv, a, l) expr_info continuation_tac
+          jinfo.casE (travel jinfo) (ci, (et, snd t), iv, a, l) expr_info continuation_tac
         in
         travel jinfo continuation_tac_a
           {expr_info with info = a; is_main_branch = false; is_final = false}
@@ -727,7 +727,7 @@ let mkDestructEq not_on_hyp env sigma expr =
   in
   (sigma, tac, to_revert)
 
-let terminate_case next_step (ci, a, iv, t, l) expr_info continuation_tac infos
+let terminate_case next_step (ci, (a, ar), iv, t, l) expr_info continuation_tac infos
     =
   let open Tacticals in
   Proofview.Goal.enter (fun g ->
@@ -737,14 +737,15 @@ let terminate_case next_step (ci, a, iv, t, l) expr_info continuation_tac infos
         try
           check_not_nested env sigma
             (expr_info.f_id :: expr_info.forbidden_ids)
-            (fst a);
+            a;
           false
         with e when CErrors.noncritical e -> true
       in
       let a' = infos.info in
+      let u, pms, a, l' = EConstr.contract_case env sigma ci a l in
       let new_info =
         { infos with
-          info = mkCase (EConstr.contract_case env sigma (ci, a, iv, a', l))
+          info = mkCase (ci, u, pms, (a, ar), iv, a', l')
         ; is_main_branch = expr_info.is_main_branch
         ; is_final = expr_info.is_final }
       in

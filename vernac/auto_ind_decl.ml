@@ -281,24 +281,16 @@ let dest_lam_assum_expand env c =
 
 let pred_context env ci params u nas =
   let mib, mip = Inductive.lookup_mind_specif env ci.ci_ind in
-  let paramdecl = Vars.subst_instance_context u mib.mind_params_ctxt in
-  let paramsubst = Vars.subst_of_rel_context_instance paramdecl params in
-  let realdecls, _ = List.chop mip.mind_nrealdecls mip.mind_arity_ctxt in
   let self =
     let args = Context.Rel.instance mkRel 0 mip.mind_arity_ctxt in
     let inst = UVars.Instance.(abstract_instance (length u)) in
     mkApp (mkIndU (ci.ci_ind, inst), args)
   in
   let na = Context.make_annot Anonymous mip.mind_relevance in
+  let paramsubst = Environ.get_match_param_context mib u params in
+  let realdecls = List.firstn mip.mind_nrealdecls mip.mind_arity_ctxt in
   let realdecls = RelDecl.LocalAssum (na, self) :: realdecls in
-  Inductive.instantiate_context u paramsubst nas realdecls
-
-let branch_context env ci params u nas i =
-  let mib, mip = Inductive.lookup_mind_specif env ci.ci_ind in
-  let paramdecl = Vars.subst_instance_context u mib.mind_params_ctxt in
-  let paramsubst = Vars.subst_of_rel_context_instance paramdecl params in
-  let ctx, _ = List.chop mip.mind_consnrealdecls.(i) (fst mip.mind_nf_lc.(i)) in
-  Inductive.instantiate_context u paramsubst nas ctx
+  Environ.instantiate_context u paramsubst nas realdecls
 
 let build_beq_scheme_deps env kn =
   let inds = get_inductive_deps ~noprop:true env kn in
@@ -453,7 +445,7 @@ let build_beq_scheme env handle kn =
          the return predicate is necessarily a type *)
       let p = mkProd (Context.anonR, t, p) in
       let lbr = Array.mapi (fun i (names, t) ->
-        let ctx = branch_context env ci pms u names i in
+        let ctx = Environ.expand_branch_context env (ci.ci_ind, u) pms lbr i in
         let env_lift' = List.fold_right push_env_lift ctx env_lift in
         match translate_type_eq env_lift' na (mkRel 1) t with
         | None -> None
@@ -565,7 +557,7 @@ let build_beq_scheme env handle kn =
           Array.map (fun (names, br) -> (names, let q = Array.length names in liftn n (n+q+1) br)) lbr) in
       let p = translate_type_eq env_lift_pred Context.anonR c p in
       let lbr = Array.mapi (fun i (names, t) ->
-        let ctx = branch_context env ci pms u names i in
+        let ctx = Environ.expand_branch_context env (ci.ci_ind, u) pms lbr i in
         let env_lift' = List.fold_right push_env_lift ctx env_lift in
         match translate_term_eq env_lift' t with
         | None -> None
