@@ -244,6 +244,12 @@ let lookup_mind_key kn env =
 let lookup_mind kn env =
   fst (lookup_mind_key kn env)
 
+(* raises an anomaly if not an inductive type *)
+let lookup_mind_specif env (kn,tyi) =
+  let mib = lookup_mind kn env in
+  if tyi >= Array.length mib.mind_packets then
+    user_err Pp.(str "Environ.lookup_mind_specif: invalid inductive index");
+  mib, mib.mind_packets.(tyi)
 
 (** {6 Changes of representation of Case nodes} *)
 

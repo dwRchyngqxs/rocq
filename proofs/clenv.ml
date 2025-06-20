@@ -860,7 +860,7 @@ let case_pf ?(with_evars=false) ~dep (indarg, typ) =
   let sigma, _ = Typing.checked_appvect env sigma hd args in
   let ind, u = destInd sigma hd in
   let s = Retyping.get_sort_of env sigma concl in
-  let (mib, mip) = Inductive.lookup_mind_specif env ind in
+  let mib = lookup_mind (fst ind) env in
   let params, indices = Array.chop mib.mind_nparams args in
 
   let () = Indrec.check_valid_elimination env sigma (ind, u) ~dep s in

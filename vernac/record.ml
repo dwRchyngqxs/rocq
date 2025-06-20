@@ -1004,7 +1004,7 @@ let add_constant_class cst =
 
 let add_inductive_class ind =
   let env = Global.env () in
-  let mind, oneind = Inductive.lookup_mind_specif env ind in
+  let mind, oneind = lookup_mind_specif env ind in
   let k =
     let ctx = oneind.mind_arity_ctxt in
     let univs = Declareops.inductive_polymorphic_context mind in

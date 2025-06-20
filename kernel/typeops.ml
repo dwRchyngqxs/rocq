@@ -627,13 +627,13 @@ let type_of_global_in_context env r =
     let univs = Declareops.constant_polymorphic_context cb in
     cb.Declarations.const_type, univs
   | IndRef ind ->
-    let (mib,_ as specif) = Inductive.lookup_mind_specif env ind in
+    let (mib,_ as specif) = lookup_mind_specif env ind in
     let univs = Declareops.inductive_polymorphic_context mib in
     let inst = UVars.make_abstract_instance univs in
     Inductive.type_of_inductive (specif, inst), univs
   | ConstructRef cstr ->
     let (mib,_ as specif) =
-      Inductive.lookup_mind_specif env (inductive_of_constructor cstr)
+      lookup_mind_specif env (inductive_of_constructor cstr)
     in
     let univs = Declareops.inductive_polymorphic_context mib in
     let inst = UVars.make_abstract_instance univs in
@@ -763,7 +763,7 @@ let rec execute env cstr =
             if args == args' then iv
             else CaseInvert {indices=Array.sub args' (Array.length pms) (Array.length indices)}
         in
-        let mib, mip = Inductive.lookup_mind_specif env ci.ci_ind in
+        let mib, mip = lookup_mind_specif env ci.ci_ind in
         let cst = Inductive.instantiate_inductive_constraints mib u in
         let () = check_constraints cst env in
         let pms', pmst = execute_array env pms in

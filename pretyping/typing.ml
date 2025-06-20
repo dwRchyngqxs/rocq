@@ -364,7 +364,7 @@ let type_of_constant env sigma (c,u) =
 
 let type_of_inductive env sigma (ind,u) =
   let open Declarations in
-  let (mib,_ as specif) = Inductive.lookup_mind_specif env ind in
+  let (mib,_ as specif) = lookup_mind_specif env ind in
   let () = Reductionops.check_hyps_inclusion env sigma (GR.IndRef ind) mib.mind_hyps in
   let u = EInstance.kind sigma u in
   let ty, csts = Inductive.constrained_type_of_inductive (specif,u) in
@@ -373,7 +373,7 @@ let type_of_inductive env sigma (ind,u) =
 
 let type_of_constructor env sigma ((ind,_ as ctor),u) =
   let open Declarations in
-  let (mib,_ as specif) = Inductive.lookup_mind_specif env ind in
+  let (mib,_ as specif) = lookup_mind_specif env ind in
   let () = Reductionops.check_hyps_inclusion env sigma (GR.IndRef ind) mib.mind_hyps in
   let u = EInstance.kind sigma u in
   let ty, csts = Inductive.constrained_type_of_constructor (ctor,u) specif in

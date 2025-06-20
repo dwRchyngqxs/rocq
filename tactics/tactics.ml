@@ -1708,7 +1708,7 @@ let make_projection env sigma params cstr sign elim i n c (ind, u) =
         && not (isEvar sigma (fst (whd_betaiota_stack env sigma t)))
         && (not (isRel sigma t))
       then
-        let (_, mip) as specif = Inductive.lookup_mind_specif env ind in
+        let (_, mip) as specif = lookup_mind_specif env ind in
         let t = lift (i + 1 - n) t in
         let ksort = Retyping.get_sort_family_of (push_rel_context sign env) sigma t in
         if Sorts.family_leq ksort (Inductiveops.elim_sort specif) then
@@ -2260,7 +2260,7 @@ let constructor_tac with_evars expctdnumopt i lbind =
     let cl = Tacmach.pf_concl gl in
     let env = Proofview.Goal.env gl in
     let ((ind,_),redcl) = Tacmach.pf_apply Tacred.reduce_to_quantified_ind gl cl in
-    let nconstr = Array.length (snd (Inductive.lookup_mind_specif env ind)).mind_consnames in
+    let nconstr = Array.length (snd (lookup_mind_specif env ind)).mind_consnames in
     check_number_of_constructors expctdnumopt i nconstr;
     Tacticals.tclTHENLIST [
       convert_concl ~cast:false ~check:false redcl DEFAULTcast;
@@ -2290,7 +2290,7 @@ let any_constructor with_evars tacopt =
     let env = Proofview.Goal.env gl in
     let (ind,_),redcl = Tacmach.pf_apply Tacred.reduce_to_quantified_ind gl cl in
     let nconstr =
-      Array.length (snd (Inductive.lookup_mind_specif env ind)).mind_consnames in
+      Array.length (snd (lookup_mind_specif env ind)).mind_consnames in
     if Int.equal nconstr 0 then error NoConstructors;
     Tacticals.tclTHENLIST [
       convert_concl ~cast:false ~check:false redcl DEFAULTcast;
