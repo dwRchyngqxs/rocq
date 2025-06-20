@@ -70,7 +70,7 @@ let protect_pattern_in_binder bl c ctypopt =
           let evd,c = aux (push_rel (LocalDef (x,b,t)) env) evd c in
           evd, mkLetIn (x,t,b,c)
         | Case (ci,u,pms,p,iv,a,bl) ->
-          (* TODO HERE: contract_branch *)
+          (* TODO HERE: contract_ranch *)
           let ep, bl = EConstr.expand_case env evd ci u pms p bl in
           let evd, bl = Array.fold_left_map (aux env) evd bl in
           let u, pms, cp, bl = EConstr.contract_case env evd ci ep bl in
