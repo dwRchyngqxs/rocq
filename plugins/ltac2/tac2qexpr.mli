@@ -134,6 +134,28 @@ type red_flag = red_flag_r CAst.t
 
 type strategy_flag = red_flag list CAst.t
 
+type reduction =
+| QHCast
+| QHBeta
+| QHZeta
+| QHZetaMatch of Names.inductive * int * int
+| QHDelta
+| QHEta
+| QHEtaPrime
+| QHEvar
+| QHFix
+| QHFixPrime
+| QHCofix
+| QHCofixPrime
+| QHMatch
+(* TODO: match UIP? *)
+| QHInferUnique
+| QHProjSurj
+| QRHead
+| QCbv
+| QCbn
+| QLazy
+
 type constr_match_pattern_r =
 | QConstrMatchPattern of Constrexpr.constr_expr
 | QConstrMatchContext of Id.t option * Constrexpr.constr_expr

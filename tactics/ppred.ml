@@ -43,13 +43,37 @@ let pr_red_flag pr r =
           pr_arg str "delta " ++ (if r.rDelta then str "-" else mt ()) ++
             hov 0 (str "[" ++ prlist_with_sep spc pr r.rConst ++ str "]"))
 
+let pr_reduction pr_zeta pr_ref pr_var keyword r =
+  let pr_occs o = pr_with_occurrences pr_var Pp.mt keyword (o, ()) in
+  let open Step in
+  match r with
+  | RHCast occ -> keyword "cast" ++ pr_occs occ
+  | RHBeta occ -> keyword "beta" ++ pr_occs occ
+  | RHZeta occ -> keyword "zeta" ++ pr_occs occ
+  | RHZetaMatch (t, occ) -> keyword "zeta_match" ++ pr_arg pr_zeta t ++ pr_occs occ
+  | RHDelta (t, occ) -> keyword "delta" ++ pr_opt pr_ref t ++ pr_occs occ
+  | RHEta -> keyword "eta"
+  | RHEtaPrime occ -> keyword "eta'" ++ pr_occs occ
+  | RHEvar occ -> keyword "evar" ++ pr_occs occ
+  | RHFix occ -> keyword "fix" ++ pr_occs occ
+  | RHFixPrime occ -> keyword "fix*" ++ pr_occs occ
+  | RHCofix occ -> keyword "cofix" ++ pr_occs occ
+  | RHCofixPrime occ -> keyword "cofix*" ++ pr_occs occ
+  | RHMatch occ -> keyword "match" ++ pr_occs occ
+  | RHInferUnique occ -> keyword "uip" ++ pr_occs occ
+  | RHead -> keyword "head"
+  | RCbv -> keyword "cbv"
+  | RCbn -> keyword "cbn"
+  | RLazy -> keyword "lazy"
+
 let pr_union pr1 pr2 = function
   | Inl a -> pr1 a
   | Inr b -> pr2 b
 
-let pr_red_expr (pr_constr,pr_lconstr,pr_ref,pr_pattern,prvar) keyword = function
+let pr_red_expr (pr_constr,pr_lconstr,pr_ref,pr_pattern,pr_zeta,prvar) keyword = function
   | Red -> keyword "red"
   | Hnf -> keyword "hnf"
+  | Step s -> keyword "step" ++ spc () ++ pr_reduction pr_zeta pr_ref prvar keyword s
   | Simpl (f,o) -> keyword "simpl" ++ (pr_short_red_flag pr_ref f)
                     ++ pr_opt (pr_with_occurrences prvar (pr_union pr_ref pr_pattern) keyword) o
   | Cbv f ->
@@ -77,5 +101,5 @@ let pr_red_expr (pr_constr,pr_lconstr,pr_ref,pr_pattern,prvar) keyword = functio
   | CbvNative o ->
     keyword "native_compute" ++ pr_opt (pr_with_occurrences prvar (pr_union pr_ref pr_pattern) keyword) o
 
-let pr_red_expr_env env sigma (pr_constr,pr_lconstr,pr_ref,pr_pattern,prvar) =
-  pr_red_expr (pr_constr env sigma, pr_lconstr env sigma, pr_ref, pr_pattern env sigma,prvar)
+let pr_red_expr_env env sigma (pr_constr,pr_lconstr,pr_ref,pr_pattern,pr_zeta,prvar) =
+  pr_red_expr (pr_constr env sigma, pr_lconstr env sigma, pr_ref, pr_pattern env sigma, pr_zeta env, prvar)
