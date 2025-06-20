@@ -559,7 +559,7 @@ let apply_branch env sigma (ind, i) args (ci, u, pms, iv, r, lf) =
       (* No let-bindings *)
       List.rev args
     else
-      let ctx = expand_branch env sigma u pms (ind, i) br in
+      let ctx = annotate_branch env sigma u pms (ind, i) lf in
       subst_of_rel_context_instance_list ctx args
   in
   Vars.substl subst (snd br)
@@ -651,10 +651,10 @@ and apply_rule whrec env sigma ctx psubst es stk =
   | Declarations.PECase (pind, pu, pret, pbrs) :: e, Stack.Case ((ci, u, pms, p, iv, brs), cst_l) :: s ->
       if not @@ Ind.CanOrd.equal pind ci.ci_ind then raise PatternFailure;
       let dummy = mkProp in
+      let ntys_ret, brctxs = EConstr.annotate_case env sigma (ci, u, pms, p, NoInvert, dummy, brs) in
       let psubst = match_einstance sigma pu u psubst in
-      let (_, _, _, ((ntys_ret, ret), _), _, _, brs) = EConstr.annotate_case env sigma (ci, u, pms, p, NoInvert, dummy, brs) in
-      let psubst = match_arg_pattern whrec env sigma (ntys_ret @ ctx) psubst pret ret in
-      let psubst = Array.fold_left2 (fun psubst pat (ctx', br) -> match_arg_pattern whrec env sigma (ctx' @ ctx) psubst pat br) psubst pbrs brs in
+      let psubst = match_arg_pattern whrec env sigma (ntys_ret @ ctx) psubst pret (snd (fst p)) in
+      let psubst = Array.fold_left3 (fun psubst pat ctx' (_, br) -> match_arg_pattern whrec env sigma (ctx' @ ctx) psubst pat br) psubst pbrs brctxs brs in
       apply_rule whrec env sigma ctx psubst e s
   | Declarations.PEProj proj :: e, Stack.Proj (proj', r, cst_l') :: s ->
       if not @@ Projection.CanOrd.equal proj proj' then raise PatternFailure;

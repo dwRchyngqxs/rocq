@@ -740,7 +740,7 @@ let rec extract_term env sg mle mlt c args =
         in extract_app env sg mle mlt extract_rel args
     | Case (ci, u, pms, r, iv, c0, br) ->
         (* If invert_case then this is a match that will get erased later, but right now we don't care. *)
-        let (ip, r, iv, c0, br) = EConstr.expand_case env sg (ci, u, pms, r, iv, c0, br) in
+        let br = EConstr.expand_branches env sg (ci, u, pms, r, iv, c0, br) in
         let ip = ci.ci_ind in
         extract_app env sg mle mlt (extract_case env sg mle (ip,c0,br)) args
     | Fix ((_,i),recd) ->
