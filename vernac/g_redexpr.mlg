@@ -33,12 +33,13 @@ let occs_nums = Entry.make "occs_nums"
 let occs = Entry.make "occs"
 let delta_flag = Entry.make "delta_flag"
 let strategy_flag = Entry.make "strategy_flag"
+let reduction = Entry.make "reduction"
 }
 
 
 GRAMMAR EXTEND Gram
   GLOBAL: int_or_var nat_or_var occs occs_nums unfold_occ pattern_occ
-    delta_flag strategy_flag ref_or_pattern_occ red_expr;
+    delta_flag strategy_flag reduction ref_or_pattern_occ red_expr;
 
   int_or_var:
     [ [ n = integer  -> { ArgArg n }
@@ -90,10 +91,45 @@ GRAMMAR EXTEND Gram
       | h = OPT [ IDENT "head" -> { () } ]; d = delta_flag -> { all_with ~head:(Option.has_some h) d }
     ] ]
   ;
+  nat_or_cond: (* TODO: closure *)
+    [ [ -> { Step.ECNat 1 }
+      | v = natural -> { Step.ECNat v }
+      | IDENT "until_global" (*; c = ltac_expr*) -> { Step.ECGlobal () }
+      | IDENT "until_focused" (*; c = ltac_expr*) -> { Step.ECLocal () }
+    ] ]
+  ;
+  eta_kind:
+    [ [ -> { Step.EBoth }
+      | IDENT "prim"; pc = OPT smart_global -> { Step.EPrim pc }
+      | IDENT "lambda"; id = OPT ident -> { Step.ELambda id }
+    ] ]
+  ;
+  reduction:
+    [ [ IDENT "cast" -> { Step.Cast AtLeastOneOccurrence }
+      | IDENT "beta"; name = OPT ident -> { Step.Beta (name, AtLeastOneOccurrence) }
+      | IDENT "zeta"; name = OPT ident -> { Step.Zeta (name, AtLeastOneOccurrence) }
+      | IDENT "zeta_match"; pc = smart_global; proj = OPT nat_or_var
+        -> { Step.ZetaMatch ((pc, proj), AtLeastOneOccurrence) }
+      | IDENT "delta"; name = OPT smart_global -> { Step.Delta (name, AtLeastOneOccurrence) }
+      | IDENT "eta"; k = eta_kind -> { Step.Eta (k, AtLeastOneOccurrence) }
+      | IDENT "evar" -> { Step.Evar }
+      | IDENT "iota_fix"; name = OPT ident -> { Step.IotaFix (name, AtLeastOneOccurrence) }
+      | IDENT "iota_fix'"; name = OPT ident -> { Step.IotaFixPrime (name, AtLeastOneOccurrence) }
+      | IDENT "iota_cofix"; name = OPT ident -> { Step.IotaCofix (name, AtLeastOneOccurrence) }
+      | IDENT "iota_cofix'"; name = OPT ident -> { Step.IotaCofixPrime (name, AtLeastOneOccurrence) }
+      | IDENT "iota_match"; pc = OPT smart_global -> { Step.IotaMatch (pc, AtLeastOneOccurrence) }
+      | IDENT "root" -> { Step.Root }
+      | IDENT "head"; c = nat_or_cond -> { Step.Head c }
+      | IDENT "cbv"; c = nat_or_cond -> { Step.Cbv c }
+      | IDENT "cbn"; c = nat_or_cond -> { Step.Cbn c }
+      | IDENT "lazy"; c = nat_or_cond -> { Step.Lazy c }
+    ] ]
+  ;
 
   red_expr:
     [ [ IDENT "red" -> { Red }
       | IDENT "hnf" -> { Hnf }
+      | IDENT "step"; r = reduction -> { Step r }
       | IDENT "simpl"; h = OPT [ IDENT "head" -> { () } ];
         d = delta_flag; po = OPT ref_or_pattern_occ -> { Simpl (all_with ~head:(Option.has_some h) d,po) }
       | IDENT "cbv"; s = strategy_flag -> { Cbv s }

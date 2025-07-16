@@ -97,15 +97,17 @@ val pr_red_expr : env -> Evd.evar_map ->
   (env -> Evd.evar_map -> 'a -> Pp.t) *
   ('b -> Pp.t) *
   (env -> Evd.evar_map -> 'c -> Pp.t) *
+  (env -> 'd -> Pp.t) *
+  (env -> 'e -> Pp.t) *
   ('occvar -> Pp.t) *
   (env -> Evd.evar_map -> 'usr -> Pp.t) ->
-  ('a,'b,'c,'occvar,'usr) Genredexpr.red_expr_gen -> Pp.t
+  ('a,'b,'c,unit,'d,'e,'occvar,'usr) Genredexpr.red_expr_gen -> Pp.t
 val pr_may_eval :
   env -> Evd.evar_map ->
   (env -> Evd.evar_map -> 'a -> Pp.t) -> (env -> Evd.evar_map -> 'a -> Pp.t) -> ('b -> Pp.t) ->
-  (env -> Evd.evar_map -> 'c -> Pp.t) -> ('occvar -> Pp.t) ->
+  (env -> Evd.evar_map -> 'c -> Pp.t) -> (env -> 'd -> Pp.t) -> (env -> 'e -> Pp.t) -> ('occvar -> Pp.t) ->
   (env -> Evd.evar_map -> 'usr -> Pp.t) ->
-  ('a,'b,'c,'occvar,'usr) may_eval -> Pp.t
+  ('a,'b,'c,'d,'e,'occvar,'usr) may_eval -> Pp.t
 
 val pr_and_short_name : ('a -> Pp.t) -> 'a Genredexpr.and_short_name -> Pp.t
 

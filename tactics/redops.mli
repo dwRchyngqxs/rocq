@@ -17,4 +17,4 @@ val all_flags : 'a glob_red_flag
 (** Mapping [red_expr_gen] *)
 
 val map_red_expr_gen : ('a1 -> 'a2) -> ('b1 -> 'b2) -> ('c1 -> 'c2) -> ('d1 -> 'd2) ->
-  ('a1, 'b1, 'c1, 'occvar, 'd1) red_expr_gen -> ('a2, 'b2, 'c2, 'occvar, 'd2) red_expr_gen
+  ('a1, 'b1, 'c1, unit,'e, 'f, 'occvar, 'd1) red_expr_gen -> ('a2, 'b2, 'c2, unit, 'e, 'f, 'occvar, 'd2) red_expr_gen

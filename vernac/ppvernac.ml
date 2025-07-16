@@ -61,7 +61,15 @@ let pr_spc_lconstr =
 
 let pr_red_expr =
   Ppred.pr_red_expr
-    (pr_constr_expr, pr_lconstr_expr, pr_smart_global, pr_constr_expr, pr_or_var int, pr_user_red_expr)
+    ( pr_constr_expr,
+      pr_lconstr_expr,
+      pr_smart_global,
+      pr_constr_expr,
+      pr_smart_global,
+      Step.pr_zeta_raw,
+      pr_or_var int,
+      pr_user_red_expr
+    )
     keyword
 
 let pr_uconstraint (l, d, r) =
@@ -872,7 +880,7 @@ let pr_synpure_vernac_expr v =
           | None -> mt()
           | Some ty -> spc() ++ str":" ++ pr_spc_lconstr ty
         in
-        pr_binders_arg bl  ++ ty ++ str " :=" ++ spc() ++ pr_reduce red ++ pr_lconstr body
+        pr_binders_arg bl  ++ ty ++ str " := " ++ pr_reduce red ++ pr_lconstr body
       | ProveBody (bl,t) ->
         let typ u = if isgoal then (assert (bl = []); u) else (str" :" ++ u) in
         pr_binders_arg bl ++ typ (pr_spc_lconstr t)

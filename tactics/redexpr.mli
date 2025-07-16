@@ -27,7 +27,8 @@ val pr_glob_user_red_expr : Environ.env -> Evd.evar_map -> Genarg.glevel user_re
 
 type raw_red_expr = Genarg.rlevel user_red_expr Genredexpr.raw_red_expr
 type glob_red_expr = Genarg.glevel user_red_expr Genredexpr.glob_red_expr
-type red_expr = (constr, Evaluable.t, constr_pattern, int, Genarg.glevel user_red_expr) red_expr_gen
+type red_expr =
+  (constr, Evaluable.t, constr_pattern, unit, Names.inductive * int option, Names.inductive * int * int, int, Genarg.glevel user_red_expr) red_expr_gen
 
 type red_expr_val
 
@@ -85,7 +86,8 @@ module Intern : sig
     pattern_of_glob : Glob_term.glob_constr -> 'pat;
   }
 
-  val intern_red_expr : ('a,'b,'c) intern_env -> raw_red_expr -> ('a,'b,'c, int Locus.or_var, Genarg.glevel user_red_expr) red_expr_gen
+  val intern_red_expr : ('a,'b,'c) intern_env -> raw_red_expr ->
+    ('a,'b,'c,unit,GlobRef.t,GlobRef.t * int Locus.or_var option, int Locus.or_var, Genarg.glevel user_red_expr) red_expr_gen
 
   val from_env : Environ.env -> (Glob_term.glob_constr, Evaluable.t, Glob_term.glob_constr) intern_env
 
@@ -105,7 +107,7 @@ module Interp : sig
   }
 
   val interp_red_expr : ('constr,'evref,'pat,'usr) interp_env -> Environ.env -> Evd.evar_map
-    -> ('constr,'evref,'pat, int Locus.or_var, Genarg.glevel user_red_expr) red_expr_gen -> Evd.evar_map * red_expr
+    -> ('constr,'evref,'pat,unit,GlobRef.t,GlobRef.t * int Locus.or_var option,int Locus.or_var, Genarg.glevel user_red_expr) red_expr_gen -> Evd.evar_map * red_expr
 
   val without_ltac : (Glob_term.glob_constr, Evaluable.t, Glob_term.glob_constr, 'usr) interp_env
 

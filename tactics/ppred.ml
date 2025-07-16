@@ -47,9 +47,18 @@ let pr_union pr1 pr2 = function
   | Inl a -> pr1 a
   | Inr b -> pr2 b
 
-let pr_red_expr (pr_constr,pr_lconstr,pr_ref,pr_pattern,prvar,pruser) keyword = function
+let pr_red_expr (pr_constr,pr_lconstr,pr_ref,pr_pattern,pr_tycons,pr_zeta,prvar,pruser) keyword = function
   | Red -> keyword "red"
   | Hnf -> keyword "hnf"
+  | Step s ->
+    keyword "step" ++ spc ()
+    ++ Step.pr_reduction
+      (fun o -> pr_with_occurrences prvar Pp.mt keyword (o, ()))
+      Pp.mt
+      pr_tycons
+      pr_zeta
+      pr_ref
+      s
   | Simpl (f,o) -> keyword "simpl" ++ (pr_short_red_flag pr_ref f)
                     ++ pr_opt (pr_with_occurrences prvar (pr_union pr_ref pr_pattern) keyword) o
   | Cbv f ->
@@ -78,5 +87,5 @@ let pr_red_expr (pr_constr,pr_lconstr,pr_ref,pr_pattern,prvar,pruser) keyword = 
     keyword "native_compute" ++ pr_opt (pr_with_occurrences prvar (pr_union pr_ref pr_pattern) keyword) o
   | UserRed usr -> pruser usr
 
-let pr_red_expr_env env sigma (pr_constr,pr_lconstr,pr_ref,pr_pattern,prvar,pruser) =
-  pr_red_expr (pr_constr env sigma, pr_lconstr env sigma, pr_ref, pr_pattern env sigma, prvar,pruser env sigma)
+let pr_red_expr_env env sigma (pr_constr,pr_lconstr,pr_ref,pr_pattern,pr_tycons,pr_zeta,prvar,pruser) =
+  pr_red_expr (pr_constr env sigma, pr_lconstr env sigma, pr_ref, pr_pattern env sigma, pr_tycons env, pr_zeta env, prvar, pruser env sigma)

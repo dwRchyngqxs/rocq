@@ -172,10 +172,10 @@ type 'a user_red_expr = 'a User.user_red_expr
 
 type raw_red_expr = Genarg.rlevel user_red_expr Genredexpr.raw_red_expr
 type glob_red_expr = Genarg.glevel user_red_expr Genredexpr.glob_red_expr
-type red_expr = (constr, Evaluable.t, constr_pattern, int, Genarg.glevel user_red_expr) red_expr_gen
+type red_expr = (constr, Evaluable.t, constr_pattern, unit, inductive * int option, inductive * int * int, int, Genarg.glevel user_red_expr) red_expr_gen
 
 type red_expr_val =
-  (constr, Evaluable.t, constr_pattern, int, strength * RedFlags.reds, Genarg.glevel user_red_expr) red_expr_gen0
+  (constr, Evaluable.t, constr_pattern, unit, inductive * int option, inductive * int * int, int, strength * RedFlags.reds, Genarg.glevel user_red_expr) red_expr_gen0
 
 let intern_user_red_expr ist usr =
   let User.RawRed (tag, v) = usr in
@@ -315,7 +315,7 @@ let rec eval_red_expr env = function
   | e -> eval_red_expr env e
   | exception Not_found -> ExtraRedExpr s (* delay to runtime interpretation *)
   end
-| (Red | Hnf | Unfold _ | Fold _ | Pattern _ | CbvVm _ | CbvNative _ | UserRed _) as e -> e
+| (Red | Hnf | Step _ | Unfold _ | Fold _ | Pattern _ | CbvVm _ | CbvNative _ | UserRed _) as e -> e
 
 let red_product_exn env sigma c = match red_product env sigma c with
   | None -> user_err Pp.(str "No head constant to reduce.")
@@ -328,6 +328,7 @@ let pattern_occs occs env sigma c = match pattern_occs occs env sigma c with
 let reduction_of_red_expr_val = function
   | Red -> (e_red red_product_exn, DEFAULTcast)
   | Hnf -> (e_red hnf_constr,DEFAULTcast)
+  | Step r -> (Step.step r,DEFAULTcast)
   | Simpl ((w,f),o) ->
     let am = match w, simplIsCbn () with
       | Norm, true -> Cbn.norm_cbn f
@@ -422,6 +423,7 @@ let bind_red_expr_occurrences occs nbcl redexp =
         error_at_in_occurrences_not_supported ()
     | Unfold [] | Pattern [] ->
         assert false
+    | Step s -> let id x = x in Step (Step.map_reduction (fun _ -> occs) id id id id s)
 
 let reduction_of_red_expr_val ?occs r =
   let r = match occs with
@@ -490,21 +492,22 @@ module Intern = struct
     pattern_of_glob : Glob_term.glob_constr -> 'pat;
   }
 
+  let intern_global_reference_non_local ist qid =
+    try Smartlocate.locate_global_with_alias ~head:true qid
+    with
+    | Not_found as exn ->
+      if not ist.strict_check && qualid_is_ident qid then
+        let id = qualid_basename qid in
+        GlobRef.VarRef id
+      else
+        let _, info = Exninfo.capture exn in
+        Nametab.error_global_not_found ~info qid
+
   let intern_global_reference ist qid =
     match ist.local_ref qid with
     | Some v -> v
     | None ->
-      let r =
-        try Smartlocate.locate_global_with_alias ~head:true qid
-        with
-        | Not_found as exn ->
-          if not ist.strict_check && qualid_is_ident qid then
-            let id = qualid_basename qid in
-            GlobRef.VarRef id
-          else
-            let _, info = Exninfo.capture exn in
-            Nametab.error_global_not_found ~info qid
-      in
+      let r = intern_global_reference_non_local ist qid in
       let short =
         if qualid_is_ident qid && not ist.strict_check then
           Some (make ?loc:qid.CAst.loc @@ qualid_basename qid)
@@ -563,18 +566,27 @@ module Intern = struct
   let intern_unfold ist (l,qid) = (l,intern_evaluable ist qid)
 
   let intern_red_expr ist = function
-    | Unfold l -> Unfold (List.map (intern_unfold ist) l)
-    | Fold l -> Fold (List.map ist.intern_constr l)
-    | Cbv f -> Cbv (intern_flag ist f)
-    | Cbn f -> Cbn (intern_flag ist f)
-    | Lazy f -> Lazy (intern_flag ist f)
-    | Pattern l -> Pattern (List.map (intern_constr_with_occurrences ist) l)
-    | Simpl (f,o) ->
-      Simpl (intern_flag ist f,
-             Option.map (intern_typed_pattern_or_ref_with_occurrences ist) o)
-    | CbvVm o -> CbvVm (Option.map (intern_typed_pattern_or_ref_with_occurrences ist) o)
-    | CbvNative o -> CbvNative (Option.map (intern_typed_pattern_or_ref_with_occurrences ist) o)
-    | (Red | Hnf | ExtraRedExpr _ as r ) -> r
+  | Step s ->
+    Step (
+      Step.map_reduction
+        (fun x -> x)
+        (fun x -> x)
+        (Smartlocate.smart_global ~head:true)
+        (on_fst (Smartlocate.smart_global ~head:true))
+        (intern_evaluable ist) s
+    )
+  | Unfold l -> Unfold (List.map (intern_unfold ist) l)
+  | Fold l -> Fold (List.map ist.intern_constr l)
+  | Cbv f -> Cbv (intern_flag ist f)
+  | Cbn f -> Cbn (intern_flag ist f)
+  | Lazy f -> Lazy (intern_flag ist f)
+  | Pattern l -> Pattern (List.map (intern_constr_with_occurrences ist) l)
+  | Simpl (f,o) ->
+    Simpl (intern_flag ist f,
+            Option.map (intern_typed_pattern_or_ref_with_occurrences ist) o)
+  | CbvVm o -> CbvVm (Option.map (intern_typed_pattern_or_ref_with_occurrences ist) o)
+  | CbvNative o -> CbvNative (Option.map (intern_typed_pattern_or_ref_with_occurrences ist) o)
+  | (Red | Hnf | ExtraRedExpr _ as r) -> r
     | UserRed usr -> UserRed (intern_user_red_expr ist.ltac_sign usr)
 
   let intern_constr env c =
@@ -636,6 +648,16 @@ module Interp = struct
     { red with rConst = List.map (interp_evaluable ist env sigma) red.rConst }
 
   let interp_red_expr ist env sigma = function
+    | Step s ->
+      sigma, Step (
+        Step.map_reduction
+          (interp_occurrences ist)
+          (fun x -> x)
+          (Step.interp_tycons env)
+          (Step.interp_zeta env)
+          (interp_evaluable ist env sigma)
+          s
+      )
     | Unfold l -> sigma , Unfold (List.map (interp_unfold ist env sigma) l)
     | Fold l ->
       let (sigma,l_interp) = List.fold_left_map (ist.interp_constr_list env) sigma l in
